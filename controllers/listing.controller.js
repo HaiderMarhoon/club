@@ -47,15 +47,15 @@ router.get('/view', isSignedIn, async (req, res) => {
 // Show players by category
 router.get('/:category', isSignedIn, async (req, res) => {
   try {
-    const category = req.params.category
-    const players = await Player.find({ category }).sort({ name: 1 })
+    const category = req.params.category;
+    const players = await Player.find({ category }).sort({ name: 1 });
     
     // Get attendance summary for each player
     const playersWithAttendance = await Promise.all(players.map(async player => {
-      const attendanceRecords = await Attendance.find({ player: player._id })
-      const presentCount = attendanceRecords.filter(a => a.status === 'present').length
-      const lateCount = attendanceRecords.filter(a => a.status === 'late').length
-      const absentCount = attendanceRecords.filter(a => a.status === 'absent').length
+      const attendanceRecords = await Attendance.find({ player: player._id });
+      const presentCount = attendanceRecords.filter(a => a.status === 'present').length;
+      const lateCount = attendanceRecords.filter(a => a.status === 'late').length;
+      const absentCount = attendanceRecords.filter(a => a.status === 'absent').length;
       
       return {
         ...player.toObject(),
@@ -63,20 +63,20 @@ router.get('/:category', isSignedIn, async (req, res) => {
         lateCount,
         absentCount,
         totalRecords: attendanceRecords.length
-      }
-    }))
+      };
+    }));
     
     res.render('listings/category', { 
       category, 
       players: playersWithAttendance,
-      categoryName: getCategoryName(category)
-    })
+      categoryName: getCategoryName(category) // Make sure this is included
+    });
   } catch (error) {
-    console.error('Error loading players by category:', error)
-    req.flash('error', 'فشل في تحميل اللاعبين')
-    res.redirect('/listings')
+    console.error('Error loading players by category:', error);
+    req.flash('error', 'فشل في تحميل اللاعبين');
+    res.redirect('/listings');
   }
-})
+});
 
 // Edit form
 router.get('/:id/edit', isSignedIn, async (req, res) => {
@@ -133,7 +133,7 @@ function getCategoryName(category) {
     under16: 'أشبال (Under 16)',
     under18: 'ناشئين (Under 18)'
   }
-  return names[category] || category
+  return names[category] || category;
 }
 
 module.exports = router

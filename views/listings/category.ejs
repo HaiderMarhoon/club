@@ -1,16 +1,20 @@
 <div class="container mt-4">
   <div
     class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-    <h2 class="mb-0">
-      <%= categoryName %>
-    </h2>
+
     <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
       <a href="/listings/new" class="btn btn-primary flex-grow-1 flex-sm-grow-0">
         <i class="fas fa-plus me-1"></i> إضافة لاعب
       </a>
-      <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
-        <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
-      </a>
+      <% if (category) { %>
+        <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
+          <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+        </a>
+        <% } else { %>
+          <button class="btn btn-success flex-grow-1 flex-sm-grow-0" disabled>
+            <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+          </button>
+          <% } %>
     </div>
   </div>
 
@@ -73,86 +77,79 @@
                     <i class="fas fa-history"></i>
                     <span class="d-none d-sm-inline">سجل الحضور</span>
                   </a>
-                  <% if (player.attendanceId) { %>
-                    <a href="/attendance/<%= player.attendanceId %>/edit" class="btn btn-sm btn-dark"
-                      title="تعديل الحضور">
-                      <i class="fas fa-clipboard-list"></i>
-                      <span class="d-none d-sm-inline">تعديل الحضور</span>
+                  <% if (player.attendanceId && player.attendanceId.toString()) { %>
+                    <a href="/attendance/<%= player.attendanceId.toString() %>/edit" class="btn btn-sm btn-dark">
+                      <i class="fas fa-clipboard-list"></i> تعديل الحضور
                     </a>
-                    <% } else { %>
-                      <button class="btn btn-sm btn-dark" disabled title="لا يوجد سجل حضور">
-                        <i class="fas fa-clipboard-list"></i>
-                        <span class="d-none d-sm-inline">تعديل الحضور</span>
-                      </button>
-                      <% } %>
+                    <% } %>
                 </div>
-              </td>
-            </tr>
-            <% }) %>
-        </tbody>
+    </div>
+    </td>
+    </tr>
+    <% }) %>
+      </tbody>
       </table>
-    </div>
-
-    <div class="mt-3 d-flex justify-content-between align-items-center">
-      <div class="text-muted">
-        إجمالي اللاعبين: <%= players.length %>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-outline-primary btn-sm" onclick="printTable()">
-          <i class="fas fa-print"></i> طباعة
-        </button>
-        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
-          <i class="fas fa-file-export"></i> تصدير
-        </button>
-      </div>
-    </div>
-    <% } else { %>
-      <div class="alert alert-info text-center py-4">
-        <i class="fas fa-info-circle fa-2x mb-3"></i>
-        <h4>لا يوجد لاعبين مسجلين في هذه الفئة بعد</h4>
-        <a href="/listings/new" class="btn btn-primary mt-2">
-          <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
-        </a>
-      </div>
-      <% } %>
 </div>
 
+<div class="mt-3 d-flex justify-content-between align-items-center">
+  <div class="text-muted">
+    إجمالي اللاعبين: <%= players.length %>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-outline-primary btn-sm" onclick="printTable()">
+      <i class="fas fa-print"></i> طباعة
+    </button>
+    <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+      <i class="fas fa-file-export"></i> تصدير
+    </button>
+  </div>
+</div>
+<% } else { %>
+  <div class="alert alert-info text-center py-4">
+    <i class="fas fa-info-circle fa-2x mb-3"></i>
+    <h4>لا يوجد لاعبين مسجلين في هذه الفئة بعد</h4>
+    <a href="/listings/new" class="btn btn-primary mt-2">
+      <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
+    </a>
+  </div>
+  <% } %>
+    </div>
 
-<script>
-  function getPercentageClass(percentage) {
-    if (percentage >= 80) return 'success';
-    if (percentage >= 50) return 'warning';
-    return 'danger';
-  }
 
-  function printTable() {
-    const printContent = document.querySelector('.table-responsive').innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = `
-      <h2 class="text-center mb-4"><%= categoryName %></h2>
+    <script>
+      function getPercentageClass(percentage) {
+        if (percentage >= 80) return 'success';
+        if (percentage >= 50) return 'warning';
+        return 'danger';
+      }
+
+      function printTable() {
+        const printContent = document.querySelector('.table-responsive').innerHTML;
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = `
       ${printContent}
       <div class="text-center mt-4 text-muted">
         تم الطباعة في ${new Date().toLocaleString()}
       </div>
     `;
-    window.print();
-    document.body.innerHTML = originalContent;
-  }
+        window.print();
+        document.body.innerHTML = originalContent;
+      }
 
-  function exportData() {
-    const form = document.getElementById('exportForm');
-    const formData = new FormData(form);
-    // Add category to form data
-    formData.append('category', '<%= category %>');
+      function exportData() {
+        const form = document.getElementById('exportForm');
+        const formData = new FormData(form);
+        // Add category to form data
+        formData.append('category', '<%= category %>');
 
-    // Convert form data to URL parameters
-    const params = new URLSearchParams(formData).toString();
-    window.location.href = `/attendance/export?${params}`;
-  }
-</script>
+        // Convert form data to URL parameters
+        const params = new URLSearchParams(formData).toString();
+        window.location.href = `/attendance/export?${params}`;
+      }
+    </script>
 
-<% function getPercentageClass(percentage) { if (percentage>= 80) return 'success';
-  if (percentage >= 50) return 'warning';
-  return 'danger';
-  }
-  %>
+    <% function getPercentageClass(percentage) { if (percentage>= 80) return 'success';
+      if (percentage >= 50) return 'warning';
+      return 'danger';
+      }
+      %>

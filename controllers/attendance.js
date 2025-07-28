@@ -11,25 +11,25 @@ router.get('/:category', isSignedIn, async (req, res) => {
     const category = req.params.category;
     const players = await Player.find({ category }).sort({ name: 1 });
 
-    // Define start and end of "today"
+    // Define today's date range
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // Get all attendance records for these players today
+    // Get today's attendance records
     const attendanceToday = await Attendance.find({
       date: { $gte: todayStart, $lte: todayEnd },
       player: { $in: players.map(p => p._id) }
     });
 
-    // Map playerId to attendanceId
+    // Create playerId to attendanceId mapping
     const attendanceMap = {};
     attendanceToday.forEach(record => {
       attendanceMap[record.player.toString()] = record._id;
     });
 
-    // Add attendanceId to each player
+    // Prepare players data with attendance info
     const playersWithAttendance = players.map(player => ({
       ...player.toObject(),
       attendanceId: attendanceMap[player._id.toString()] || null,
@@ -47,7 +47,6 @@ router.get('/:category', isSignedIn, async (req, res) => {
     res.redirect(`/listings/${req.params.category}`);
   }
 });
-
 
 
 // Submit attendance
@@ -104,8 +103,7 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
   }
 })
 
-// Edit attendance record - GET
-
+// GET Edit Form - Already looks good in your code
 router.get('/:id/edit', isSignedIn, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id).populate('player');
@@ -117,7 +115,7 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
 
     res.render('attendance/edit', {
       attendance,
-      playerId: attendance.player._id, // Explicitly pass playerId
+      playerId: attendance.player._id,
       statusOptions: ['present', 'late', 'absent'],
       categoryName: getCategoryName(attendance.player.category),
       title: 'تعديل سجل الحضور'
@@ -129,31 +127,41 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
   }
 });
 
-// Update attendance record - PUT
+// PUT Update Attendance - Enhanced version
 router.put('/:id', isSignedIn, async (req, res) => {
   try {
-    const { status, comment, date } = req.body
+    const { status, comment, date } = req.body;
     
-    const updatedAttendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      { status, comment, date: new Date(date) },
-      { new: true }
-    ).populate('player')
-
-    if (!updatedAttendance) {
-      req.flash('error', 'سجل الحضور غير موجود')
-      return res.redirect('/attendance')
+    // Validate inputs
+    if (!status || !date) {
+      req.flash('error', 'الحالة وتاريخ التدريب مطلوبان');
+      return res.redirect(`/attendance/${req.params.id}/edit`);
     }
 
-    req.flash('success', 'تم تحديث سجل الحضور بنجاح')
-    res.redirect(`/attendance/player/${updatedAttendance.player._id}`)
-  } catch (err) {
-    console.error('Error updating attendance:', err)
-    req.flash('error', 'خطأ في تحديث سجل الحضور')
-    res.redirect(`/attendance/${req.params.id}/edit`)
-  }
-})
+    const attendance = await Attendance.findByIdAndUpdate(
+      req.params.id,
+      {
+        status,
+        comment: comment || '', // Handle empty comments
+        date: new Date(date),
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).populate('player');
 
+    if (!attendance) {
+      req.flash('error', 'سجل الحضور غير موجود');
+      return res.redirect('/attendance');
+    }
+
+    req.flash('success', 'تم تحديث سجل الحضور بنجاح');
+    res.redirect(`/attendance/player/${attendance.player._id}`);
+  } catch (err) {
+    console.error('Error updating attendance:', err);
+    req.flash('error', 'خطأ في تحديث سجل الحضور');
+    res.redirect(`/attendance/${req.params.id}/edit`);
+  }
+});
 // Delete attendance record - DELETE
 router.delete('/:id', isSignedIn, async (req, res) => {
   try {
