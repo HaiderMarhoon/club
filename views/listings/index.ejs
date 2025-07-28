@@ -1,0 +1,18 @@
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <h1 class="mb-4">إدارة الفريق الكروي</h1>
+      <p class="lead mb-5">نظام متكامل لإدارة اللاعبين ومتابعة الحضور</p>
+      
+      <div class="d-grid gap-3">
+        <a href="/listings/view" class="btn btn-primary btn-lg">عرض جميع اللاعبين</a>
+        <% if (user) { %>
+          <a href="/listings/new" class="btn btn-success btn-lg">إضافة لاعب جديد</a>
+        <% } else { %>
+          <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

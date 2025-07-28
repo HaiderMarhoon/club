@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-</head>
-<body>
-<% if (user) { %>
-<h1>Welcome to the app, <%= user.username %>!</h1>
-<a href="/auth/sign-out">Sign out</a>
-<% } else { %>
-<h1>Welcome to the app, guest.</h1>
-<p>
-  <a href="/auth/sign-up">Sign up</a> or <a href="/auth/sign-in">sign in</a>.
-</p>
-<% } %>
-</body>
-</html>
+
+<h1>مرحبا بك <%= user ? user.username : 'زائر' %></h1>
+<nav>
+  <% if (!user) { %>
+    <a href="/auth/sign-in">تسجيل الدخول</a> |
+    <a href="/auth/sign-up">انشاء حساب</a>
+  <% } else { %>
+    <a href="/listings/new">إضافة لاعب</a> |
+    <a href="/listings">عرض اللاعبين</a> |
+    <a href="/auth/sign-out">تسجيل الخروج</a>
+  <% } %>
+</nav>

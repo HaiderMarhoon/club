@@ -1,0 +1,214 @@
+/* Base Styles */
+body {
+  font-family: 'Tajawal', sans-serif;
+  background-color: #f8f9fa;
+  padding-bottom: 60px; /* Space for mobile footer */
+}
+
+/* Navigation */
+.navbar {
+  background-color: #343a40;
+  padding: 0.75rem 1rem;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+/* Tables */
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.table th {
+  background-color: #343a40;
+  color: white;
+  font-weight: 600;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Attendance Status */
+.attendance-status {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.present { background-color: #28a745; }
+.late { background-color: #ffc107; }
+.absent { background-color: #dc3545; }
+
+/* Category Header */
+.category-header {
+  background-color: #e9ecef;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Forms */
+.form-control {
+  font-size: 1rem;
+  padding: 0.75rem;
+}
+
+.btn {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+/* RTL Specific Styles */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .form-floating > label {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .form-floating > .form-control,
+[dir="rtl"] .form-floating > .form-control-plaintext,
+[dir="rtl"] .form-floating > .form-select {
+  padding-right: 0.75rem;
+  padding-left: 1.75rem;
+}
+
+[dir="rtl"] .dropdown-menu {
+  text-align: right;
+  left: auto !important;
+  right: 0 !important;
+}
+
+/* Mobile First Styles */
+@media (max-width: 768px) {
+  /* Navigation */
+  .navbar-collapse {
+    background-color: #343a40;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-radius: 0.25rem;
+  }
+  
+  .navbar-nav {
+    padding-right: 0;
+  }
+  
+  .navbar-toggler {
+    border: none;
+    padding: 0.5rem;
+  }
+  
+  /* Tables */
+  .table thead {
+    display: none;
+  }
+  
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+  
+  .table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+  }
+  
+  .table td {
+    text-align: right;
+    padding: 0.75rem;
+    position: relative;
+    padding-right: 50%;
+  }
+  
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    right: 15px;
+    font-weight: bold;
+  }
+  
+  /* Forms */
+  .auth-form {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .form-control {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Better mobile touch targets */
+  .nav-link, .dropdown-item {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  
+  /* Attendance */
+  .attendance-status {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .auth-form {
+    max-width: 400px;
+    margin: 2rem auto;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .table-responsive {
+    overflow-x: visible;
+  }
+  
+  .table td::before {
+    display: none;
+  }
+  
+  .table, .table tbody, .table tr, .table td {
+    display: table;
+    width: auto;
+  }
+  
+  .table td {
+    text-align: center;
+    padding: 0.75rem;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .dropdown-menu {
+    position: absolute !important;
+  }
+  
+  .navbar-nav {
+    flex-direction: row;
+  }
+  
+  .nav-item {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+}

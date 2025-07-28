@@ -1,0 +1,40 @@
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>سجل الحضور - <%= player.name %></h2>
+    <a href="/listings/<%= player.category %>" class="btn btn-outline-primary">العودة للقائمة</a>
+  </div>
+  
+  <% if (records.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>التاريخ</th>
+            <th>الحالة</th>
+            <th>ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% records.forEach(record => { %>
+            <tr>
+              <td><%= record.date.toLocaleDateString('ar-EG') %></td>
+              <td>
+                <% if (record.status === 'present') { %>
+                  <span class="badge bg-success">حاضر</span>
+                <% } else if (record.status === 'late') { %>
+                  <span class="badge bg-warning text-dark">متأخر</span>
+                <% } else { %>
+                  <span class="badge bg-danger">غائب</span>
+                <% } %>
+              </td>
+              <td><%= record.comment || '---' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info">لا يوجد سجل حضور لهذا اللاعب بعد</div>
+  <% } %>
+</div>

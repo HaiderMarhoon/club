@@ -1,0 +1,56 @@
+
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><%= categoryName %></h2>
+    <div>
+      <a href="/listings/new" class="btn btn-primary me-2">إضافة لاعب</a>
+      <a href="/attendance/<%= category %>" class="btn btn-success">تسجيل الحضور</a>
+    </div>
+  </div>
+  
+  <% if (players.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>اسم اللاعب</th>
+            <th>حضور</th>
+            <th>تأخر</th>
+            <th>غياب</th>
+            <th>النسبة</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% players.forEach((player, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= player.name %></td>
+              <td><%= player.presentCount || 0 %></td>
+              <td><%= player.lateCount || 0 %></td>
+              <td><%= player.absentCount || 0 %></td>
+              <td>
+                <% if (player.totalRecords > 0) { %>
+                  <%= Math.round((player.presentCount / player.totalRecords) * 100) %>%
+                <% } else { %>
+                  0%
+                <% } %>
+              </td>
+              <td>
+                <a href="/listings/<%= player._id %>/edit" class="btn btn-sm btn-warning">تعديل</a>
+                <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')">حذف</button>
+                </form>
+                <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info">سجل الحضور</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info">لا يوجد لاعبين مسجلين في هذه الفئة بعد</div>
+  <% } %>
+</div>

@@ -1,0 +1,49 @@
+
+
+<div class="container mt-4">
+  <h2 class="mb-4">تسجيل الحضور - <%= categoryName %></h2>
+  
+  <form action="/attendance" method="POST">
+    <input type="hidden" name="category" value="<%= category %>">
+    
+    <div class="mb-3">
+      <label for="date" class="form-label">تاريخ التدريب</label>
+      <input type="date" class="form-control" id="date" name="date" value="<%= today %>" required>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>اسم اللاعب</th>
+            <th>الحالة</th>
+            <th>ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% players.forEach(player => { %>
+            <tr>
+              <td><%= player.name %></td>
+              <td>
+                <select class="form-select" name="attendances[<%= player._id %>][status]" required>
+                  <option value="">اختر الحالة</option>
+                  <option value="present">حاضر</option>
+                  <option value="late">متأخر</option>
+                  <option value="absent">غائب</option>
+                </select>
+              </td>
+              <td>
+                <input type="text" class="form-control" name="attendances[<%= player._id %>][comment]" placeholder="ملاحظات">
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary">حفظ الحضور</button>
+      <a href="/listings/<%= category %>" class="btn btn-outline-secondary">إلغاء</a>
+    </div>
+  </form>
+</div>
