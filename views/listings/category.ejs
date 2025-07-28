@@ -1,56 +1,158 @@
-
-
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><%= categoryName %></h2>
-    <div>
-      <a href="/listings/new" class="btn btn-primary me-2">إضافة لاعب</a>
-      <a href="/attendance/<%= category %>" class="btn btn-success">تسجيل الحضور</a>
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <h2 class="mb-0">
+      <%= categoryName %>
+    </h2>
+    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+      <a href="/listings/new" class="btn btn-primary flex-grow-1 flex-sm-grow-0">
+        <i class="fas fa-plus me-1"></i> إضافة لاعب
+      </a>
+      <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
+        <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+      </a>
     </div>
   </div>
-  
-  <% if (players.length > 0) { %>
+
+  <% if (players.length> 0) { %>
     <div class="table-responsive">
       <table class="table table-striped table-hover">
         <thead class="table-dark">
           <tr>
             <th>#</th>
             <th>اسم اللاعب</th>
-            <th>حضور</th>
-            <th>تأخر</th>
-            <th>غياب</th>
-            <th>النسبة</th>
-            <th>الإجراءات</th>
+            <th class="text-center">حضور</th>
+            <th class="text-center">تأخر</th>
+            <th class="text-center">غياب</th>
+            <th class="text-center">النسبة</th>
+            <th class="text-center">الإجراءات</th>
           </tr>
         </thead>
         <tbody>
-          <% players.forEach((player, index) => { %>
+          <% players.forEach((player, index)=> { %>
             <tr>
-              <td><%= index + 1 %></td>
-              <td><%= player.name %></td>
-              <td><%= player.presentCount || 0 %></td>
-              <td><%= player.lateCount || 0 %></td>
-              <td><%= player.absentCount || 0 %></td>
               <td>
-                <% if (player.totalRecords > 0) { %>
-                  <%= Math.round((player.presentCount / player.totalRecords) * 100) %>%
-                <% } else { %>
-                  0%
-                <% } %>
+                <%= index + 1 %>
               </td>
               <td>
-                <a href="/listings/<%= player._id %>/edit" class="btn btn-sm btn-warning">تعديل</a>
-                <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-inline">
-                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')">حذف</button>
-                </form>
-                <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info">سجل الحضور</a>
+                <%= player.name %>
+              </td>
+              <td class="text-center <%= player.presentCount > 0 ? 'text-success fw-bold' : '' %>">
+                <%= player.presentCount || 0 %>
+              </td>
+              <td class="text-center <%= player.lateCount > 0 ? 'text-warning fw-bold' : '' %>">
+                <%= player.lateCount || 0 %>
+              </td>
+              <td class="text-center <%= player.absentCount > 0 ? 'text-danger fw-bold' : '' %>">
+                <%= player.absentCount || 0 %>
+              </td>
+              <td class="text-center">
+                <% if (player.totalRecords> 0) { %>
+                  <span
+                    class="badge bg-<%= getPercentageClass(Math.round((player.presentCount / player.totalRecords) * 100)) %>">
+                    <%= Math.round((player.presentCount / player.totalRecords) * 100) %>%
+                  </span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">0%</span>
+                    <% } %>
+              </td>
+              <td>
+                <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
+                  <a href="/listings/<%= player._id %>/edit" class="btn btn-sm btn-warning" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                    <span class="d-none d-sm-inline">تعديل</span>
+                  </a>
+                  <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')" title="حذف">
+                      <i class="fas fa-trash-alt"></i>
+                      <span class="d-none d-sm-inline">حذف</span>
+                    </button>
+                  </form>
+                  <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info" title="سجل الحضور">
+                    <i class="fas fa-history"></i>
+                    <span class="d-none d-sm-inline">سجل الحضور</span>
+                  </a>
+                  <% if (player.attendanceId) { %>
+                    <a href="/attendance/<%= player.attendanceId %>/edit" class="btn btn-sm btn-dark"
+                      title="تعديل الحضور">
+                      <i class="fas fa-clipboard-list"></i>
+                      <span class="d-none d-sm-inline">تعديل الحضور</span>
+                    </a>
+                    <% } else { %>
+                      <button class="btn btn-sm btn-dark" disabled title="لا يوجد سجل حضور">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="d-none d-sm-inline">تعديل الحضور</span>
+                      </button>
+                      <% } %>
+                </div>
               </td>
             </tr>
-          <% }) %>
+            <% }) %>
         </tbody>
       </table>
     </div>
-  <% } else { %>
-    <div class="alert alert-info">لا يوجد لاعبين مسجلين في هذه الفئة بعد</div>
-  <% } %>
+
+    <div class="mt-3 d-flex justify-content-between align-items-center">
+      <div class="text-muted">
+        إجمالي اللاعبين: <%= players.length %>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline-primary btn-sm" onclick="printTable()">
+          <i class="fas fa-print"></i> طباعة
+        </button>
+        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+          <i class="fas fa-file-export"></i> تصدير
+        </button>
+      </div>
+    </div>
+    <% } else { %>
+      <div class="alert alert-info text-center py-4">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <h4>لا يوجد لاعبين مسجلين في هذه الفئة بعد</h4>
+        <a href="/listings/new" class="btn btn-primary mt-2">
+          <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
+        </a>
+      </div>
+      <% } %>
 </div>
+
+
+<script>
+  function getPercentageClass(percentage) {
+    if (percentage >= 80) return 'success';
+    if (percentage >= 50) return 'warning';
+    return 'danger';
+  }
+
+  function printTable() {
+    const printContent = document.querySelector('.table-responsive').innerHTML;
+    const originalContent = document.body.innerHTML;
+    document.body.innerHTML = `
+      <h2 class="text-center mb-4"><%= categoryName %></h2>
+      ${printContent}
+      <div class="text-center mt-4 text-muted">
+        تم الطباعة في ${new Date().toLocaleString()}
+      </div>
+    `;
+    window.print();
+    document.body.innerHTML = originalContent;
+  }
+
+  function exportData() {
+    const form = document.getElementById('exportForm');
+    const formData = new FormData(form);
+    // Add category to form data
+    formData.append('category', '<%= category %>');
+
+    // Convert form data to URL parameters
+    const params = new URLSearchParams(formData).toString();
+    window.location.href = `/attendance/export?${params}`;
+  }
+</script>
+
+<% function getPercentageClass(percentage) { if (percentage>= 80) return 'success';
+  if (percentage >= 50) return 'warning';
+  return 'danger';
+  }
+  %>
