@@ -1,214 +1,240 @@
+/* Mobile-First Attendance System Styles */
+:root {
+  --primary-color: #3498db;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --dark-color: #2c3e50;
+  --light-color: #ecf0f1;
+}
+
 /* Base Styles */
 body {
   font-family: 'Tajawal', sans-serif;
-  background-color: #f8f9fa;
-  padding-bottom: 60px; /* Space for mobile footer */
+  background-color: #f5f5f5;
+  line-height: 1.6;
+  color: #333;
 }
 
-/* Navigation */
+/* Header & Navigation */
 .navbar {
-  background-color: #343a40;
-  padding: 0.75rem 1rem;
+  background-color: var(--dark-color);
+  padding: 0.8rem 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .navbar-brand {
-  font-weight: bold;
-  font-size: 1.25rem;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: white;
 }
 
-/* Tables */
+/* Tables - Mobile First Approach */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 .table {
   width: 100%;
-  margin-bottom: 1rem;
+  border-collapse: collapse;
+  background: white;
 }
 
 .table th {
-  background-color: #343a40;
+  background-color: var(--dark-color);
   color: white;
   font-weight: 600;
+  padding: 12px 8px;
+  text-align: center;
 }
 
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Attendance Status */
-.attendance-status {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+.table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
   vertical-align: middle;
 }
 
-.present { background-color: #28a745; }
-.late { background-color: #ffc107; }
-.absent { background-color: #dc3545; }
-
-/* Category Header */
-.category-header {
-  background-color: #e9ecef;
-  padding: 1rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1.5rem;
+/* Attendance Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
+
+.present { background-color: var(--success-color); color: white; }
+.late { background-color: var(--warning-color); color: #333; }
+.absent { background-color: var(--danger-color); color: white; }
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn-primary { background-color: var(--primary-color); }
+.btn-success { background-color: var(--success-color); }
+.btn-warning { background-color: var(--warning-color); }
+.btn-danger { background-color: var(--danger-color); }
+.btn-dark { background-color: var(--dark-color); color: white; }
 
 /* Forms */
 .form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 1rem;
-  padding: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.btn {
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
+.form-select {
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
 }
 
-/* RTL Specific Styles */
-[dir="rtl"] {
-  text-align: right;
+/* Card Layouts */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
 }
 
-[dir="rtl"] .form-floating > label {
-  right: auto;
-  left: 0;
+.card-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 16px;
+  font-weight: 600;
 }
 
-[dir="rtl"] .form-floating > .form-control,
-[dir="rtl"] .form-floating > .form-control-plaintext,
-[dir="rtl"] .form-floating > .form-select {
-  padding-right: 0.75rem;
-  padding-left: 1.75rem;
+.card-body {
+  padding: 16px;
 }
 
-[dir="rtl"] .dropdown-menu {
-  text-align: right;
-  left: auto !important;
-  right: 0 !important;
-}
-
-/* Mobile First Styles */
-@media (max-width: 768px) {
-  /* Navigation */
-  .navbar-collapse {
-    background-color: #343a40;
-    padding: 1rem;
-    margin-top: 0.5rem;
-    border-radius: 0.25rem;
-  }
-  
-  .navbar-nav {
-    padding-right: 0;
-  }
-  
-  .navbar-toggler {
-    border: none;
-    padding: 0.5rem;
-  }
-  
-  /* Tables */
-  .table thead {
-    display: none;
-  }
-  
+/* Mobile-Specific Styles */
+@media (max-width: 767px) {
+  /* Stack table rows on mobile */
   .table, .table tbody, .table tr, .table td {
     display: block;
     width: 100%;
   }
   
+  .table thead { display: none; }
+  
   .table tr {
     margin-bottom: 1rem;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
   }
   
   .table td {
     text-align: right;
-    padding: 0.75rem;
     position: relative;
     padding-right: 50%;
+    padding-left: 16px;
+    border-bottom: 1px solid #eee;
   }
+  
+  .table td:last-child { border-bottom: none; }
   
   .table td::before {
     content: attr(data-label);
     position: absolute;
-    right: 15px;
-    font-weight: bold;
+    left: 16px;
+    font-weight: 600;
+    text-align: left;
   }
   
-  /* Forms */
-  .auth-form {
-    padding: 1.5rem;
-    margin: 1rem;
+  /* Action buttons stack vertically */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
   
-  .form-control {
-    font-size: 1rem;
-    padding: 0.75rem;
+  /* Adjust form elements */
+  .form-control, .form-select {
+    font-size: 16px; /* Prevent zooming on iOS */
   }
   
-  /* Buttons */
-  .btn {
-    display: block;
+  /* Make buttons full width on mobile */
+  .btn-mobile-full {
     width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Better mobile touch targets */
-  .nav-link, .dropdown-item {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-  }
-  
-  /* Attendance */
-  .attendance-status {
-    width: 25px;
-    height: 25px;
+    margin-bottom: 8px;
   }
 }
 
-/* Small devices (landscape phones, 576px and up) */
-@media (min-width: 576px) {
-  .auth-form {
-    max-width: 400px;
-    margin: 2rem auto;
-  }
-}
-
-/* Medium devices (tablets, 768px and up) */
+/* Tablet and Desktop Styles */
 @media (min-width: 768px) {
-  .table-responsive {
-    overflow-x: visible;
-  }
-  
-  .table td::before {
-    display: none;
-  }
+  .table td::before { display: none; }
   
   .table, .table tbody, .table tr, .table td {
-    display: table;
-    width: auto;
+    display: table-cell;
   }
   
   .table td {
     text-align: center;
-    padding: 0.75rem;
+    padding-right: 8px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  /* Two-column layout for forms */
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .form-row .form-group {
+    flex: 1;
   }
 }
 
-/* Large devices (desktops, 992px and up) */
-@media (min-width: 992px) {
-  .dropdown-menu {
-    position: absolute !important;
-  }
-  
-  .navbar-nav {
-    flex-direction: row;
-  }
-  
-  .nav-item {
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-  }
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mb-3 { margin-bottom: 1rem; }
+.mt-3 { margin-top: 1rem; }
+.d-flex { display: flex; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center { align-items: center; }
+
+/* RTL Support */
+[dir="rtl"] .table td::before {
+  right: 16px;
+  left: auto;
+}
+
+[dir="rtl"] .table td {
+  text-align: left;
+  padding-left: 50%;
+  padding-right: 16px;
 }

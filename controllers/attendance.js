@@ -5,7 +5,6 @@ const Player = require('../models/players')
 const isSignedIn = require('../middleware/is-signed-in')
 
 // View attendance form for a category
-
 router.get('/:category', isSignedIn, async (req, res) => {
   try {
     const category = req.params.category;
@@ -48,7 +47,6 @@ router.get('/:category', isSignedIn, async (req, res) => {
   }
 });
 
-
 // Submit attendance
 router.post('/', isSignedIn, async (req, res) => {
   try {
@@ -88,12 +86,12 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
       return res.redirect('/listings')
     }
     
-    const attendanceRecords = await Attendance.find({ player: req.params.id })
+    const records = await Attendance.find({ player: req.params.id })
       .sort({ date: -1 })
     
     res.render('attendance/history', {
       player,
-      records: attendanceRecords,
+      records,
       categoryName: getCategoryName(player.category)
     })
   } catch (err) {
@@ -103,7 +101,7 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
   }
 })
 
-// GET Edit Form - Already looks good in your code
+// GET Edit Form
 router.get('/:id/edit', isSignedIn, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id).populate('player');
@@ -115,10 +113,9 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
 
     res.render('attendance/edit', {
       attendance,
-      playerId: attendance.player._id,
-      statusOptions: ['present', 'late', 'absent'],
-      categoryName: getCategoryName(attendance.player.category),
-      title: 'تعديل سجل الحضور'
+      player: attendance.player,
+      today: attendance.date.toISOString().split('T')[0],
+      categoryName: getCategoryName(attendance.player.category)
     });
   } catch (err) {
     console.error('Error loading attendance edit form:', err);
@@ -127,12 +124,11 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
   }
 });
 
-// PUT Update Attendance - Enhanced version
+// PUT Update Attendance
 router.put('/:id', isSignedIn, async (req, res) => {
   try {
     const { status, comment, date } = req.body;
     
-    // Validate inputs
     if (!status || !date) {
       req.flash('error', 'الحالة وتاريخ التدريب مطلوبان');
       return res.redirect(`/attendance/${req.params.id}/edit`);
@@ -142,7 +138,7 @@ router.put('/:id', isSignedIn, async (req, res) => {
       req.params.id,
       {
         status,
-        comment: comment || '', // Handle empty comments
+        comment: comment || '',
         date: new Date(date),
         updatedAt: new Date()
       },
@@ -162,7 +158,8 @@ router.put('/:id', isSignedIn, async (req, res) => {
     res.redirect(`/attendance/${req.params.id}/edit`);
   }
 });
-// Delete attendance record - DELETE
+
+// Delete attendance record
 router.delete('/:id', isSignedIn, async (req, res) => {
   try {
     const attendance = await Attendance.findByIdAndDelete(req.params.id)

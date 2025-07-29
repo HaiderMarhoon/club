@@ -1,10 +1,9 @@
-
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>سجل الحضور - <%= player.name %></h2>
     <a href="/listings/<%= player.category %>" class="btn btn-outline-primary">العودة للقائمة</a>
   </div>
-  
+
   <% if (records.length > 0) { %>
     <div class="table-responsive">
       <table class="table table-striped">
@@ -13,6 +12,7 @@
             <th>التاريخ</th>
             <th>الحالة</th>
             <th>ملاحظات</th>
+            <th>الإجراءات</th>
           </tr>
         </thead>
         <tbody>
@@ -29,6 +29,19 @@
                 <% } %>
               </td>
               <td><%= record.comment || '---' %></td>
+              <td>
+                <a href="/attendance/<%= record._id %>/edit" class="btn btn-sm btn-dark" title="تعديل الحضور">
+                  <i class="fas fa-edit"></i>
+                  <span class="d-none d-sm-inline">تعديل</span>
+                </a>
+                <form action="/attendance/<%= record._id %>?_method=DELETE" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger" 
+                    onclick="return confirm('هل أنت متأكد من حذف سجل الحضور هذا؟')" title="حذف">
+                    <i class="fas fa-trash-alt"></i>
+                    <span class="d-none d-sm-inline">حذف</span>
+                  </button>
+                </form>
+              </td>
             </tr>
           <% }) %>
         </tbody>
