@@ -14,8 +14,8 @@ mongoose.connection.on('connected', () => {
 
 // View engine setup
 app.set('view engine', 'ejs')
-app.set('views', path.join(__dirname, 'views'))
-app.set('layout', 'layouts/main') // Set default layout
+console.log("Views folder:", path.join(__dirname, 'views'))
+app.set('layout', 'layouts/main')
 app.use(expressLayouts) // Enable EJS layouts
 app.use(express.static(path.join(__dirname, 'public')))
 
