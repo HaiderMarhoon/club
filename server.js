@@ -65,11 +65,13 @@ app.use('/listings', listingController)
 app.use('/attendance', attendanceRoutes)
 
 app.get('/', (req, res) => {
+  console.log('SESSION:', req.session);
   res.render('index', { 
     title: 'Football Team Management',
     messages: req.flash()
   })
 })
+
 
 // 404 handler
 app.use((req, res, next) => {

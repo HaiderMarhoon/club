@@ -13,34 +13,35 @@ router.get('/sign-up', (req, res) => {
 })
 
 // POST A NEW USER TO THE DATABASE when the form is submitted
-router.post('/sign-up', async (req, res) => {
-    // get data from the form (req.body)
-    // check if someone already exists
-    // req.body = form data
-    console.log(req)
-    const userInDatabase = await User.findOne({ username: req.body.username })
-    if (userInDatabase) {
-        return res.send('Username already taken.')
-    }
-    // check that password and confirmPassword are the same
-    if (req.body.password !== req.body.confirmPassword) {
-        return res.send('Password and confirm password must match.')
-    }
-    // check for password complexity (LEVEL UP)
-    // hash the password
-    const hashedPassword = bcrypt.hashSync(req.body.password, 10)
-    req.body.password = hashedPassword
-    const newUser = await User.create(req.body)
-    req.session.user = {
-        username: newUser.username,
-        _id: newUser._id,
-    }
-    
-    req.session.save(() => {
-        console.log(req.session)
-        res.redirect('/')
-    })
+router.post('/sign-in', async (req, res) => {
+  console.log('SIGN IN FORM:', req.body)
+
+  const userInDatabase = await User.findOne({ username: req.body.username })
+  console.log('USER IN DB:', userInDatabase)
+
+  if (!userInDatabase) {
+    return res.send('Login failed. User not found.')
+  }
+
+  const validPassword = bcrypt.compareSync(req.body.password, userInDatabase.password)
+  console.log('PASSWORD VALID:', validPassword)
+
+  if (!validPassword) {
+    return res.send('Login failed. Incorrect password.')
+  }
+
+  req.session.user = {
+    username: userInDatabase.username,
+    _id: userInDatabase._id,
+  }
+
+  console.log('SESSION AFTER LOGIN:', req.session)
+
+  req.session.save(() => {
+    res.redirect('/')
+  })
 })
+
 
 // SIGN IN VIEW
 router.get('/sign-in', (req, res) => {
