@@ -1,7 +1,11 @@
-
 <h1>مرحبا بك <%= user ? user.username : 'زائر' %></h1>
 <nav>
+  <% if (!user) { %>
+    <a href="/auth/sign-in">تسجيل الدخول</a> |
+    <a href="/auth/sign-up">انشاء حساب</a>
+  <% } else { %>
     <a href="/listings/new">إضافة لاعب</a> |
     <a href="/listings">عرض اللاعبين</a> |
     <a href="/auth/sign-out">تسجيل الخروج</a>
+  <% } %>
 </nav>
