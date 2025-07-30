@@ -12,36 +12,44 @@ router.get('/sign-up', (req, res) => {
     res.render('auth/sign-up.ejs')
 })
 
-// POST A NEW USER TO THE DATABASE when the form is submitted
-router.post('/sign-in', async (req, res) => {
-  console.log('SIGN IN FORM:', req.body)
+// POST - CREATE NEW USER (SIGN UP)
+router.post('/sign-up', async (req, res) => {
+  try {
+    const { username, password, confirmPassword } = req.body
+    
+    // Validate matching passwords
+    if (password !== confirmPassword) {
+      return res.send('كلمة المرور غير متطابقة')
+    }
 
-  const userInDatabase = await User.findOne({ username: req.body.username })
-  console.log('USER IN DB:', userInDatabase)
+    // Check if user exists
+    const userExists = await User.findOne({ username })
+    if (userExists) {
+      return res.send('اسم المستخدم موجود بالفعل')
+    }
 
-  if (!userInDatabase) {
-    return res.send('Login failed. User not found.')
-  }
+    // Hash password
+    const hashedPassword = bcrypt.hashSync(password, 10)
 
-  const validPassword = bcrypt.compareSync(req.body.password, userInDatabase.password)
-  console.log('PASSWORD VALID:', validPassword)
+    // Create user
+    const user = await User.create({
+      username,
+      password: hashedPassword
+    })
 
-  if (!validPassword) {
-    return res.send('Login failed. Incorrect password.')
-  }
+    // Automatically log in after sign up
+    req.session.user = {
+      username: user.username,
+      _id: user._id
+    }
 
-  req.session.user = {
-    username: userInDatabase.username,
-    _id: userInDatabase._id,
-  }
-
-  console.log('SESSION AFTER LOGIN:', req.session)
-
-  req.session.save(() => {
     res.redirect('/')
-  })
+    
+  } catch (error) {
+    console.error('Sign-up error:', error)
+    res.send('حدث خطأ أثناء إنشاء الحساب')
+  }
 })
-
 
 // SIGN IN VIEW
 router.get('/sign-in', (req, res) => {
