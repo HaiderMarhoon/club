@@ -1,20 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign Up</title>
-  </head>
-  <body>
-    <h1>انشاء حساب جديد</h1>
-    <form action="/auth/sign-up" method="POST">
-      <label for="username">الاسم:</label>
-      <input type="text" name="username" id="username" />
-      <label for="password">الباسورد:</label>
-      <input type="password" name="password" id="password" />
-      <label for="confirmPassword"> الباسورد:</label>
-      <input type="password" name="confirmPassword" id="confirmPassword" />
-      <button type="submit">انشاء</button>
-    </form>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+</head>
+
+<body>
+  <h1>انشاء حساب جديد</h1>
+  <form action="/auth/sign-up" method="POST">
+    <label for="username">الاسم:</label>
+    <input type="text" name="username" id="username" />
+    <label for="password">الباسورد:</label>
+    <input type="password" name="password" id="password" />
+    <label for="confirmPassword"> الباسورد:</label>
+    <input type="password" name="confirmPassword" id="confirmPassword" />
+    <button type="submit">انشاء</button>
+  </form>
+
+  <!-- <form action="/auth/sign-up" method="POST" class="w-50 mx-auto mt-4">
+    <div class="mb-3">
+      <label for="username" class="form-label">اسم المستخدم</label>
+      <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">كلمة المرور</label>
+      <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="confirmPassword" class="form-label">تأكيد كلمة المرور</label>
+      <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="category" class="form-label">الفئة العمرية</label>
+      <select name="category" id="category" class="form-select" required>
+        <option value="" disabled selected>اختر الفئة</option>
+        <option value="under14">تحت 14 سنة</option>
+        <option value="under16">تحت 16 سنة</option>
+        <option value="under18">تحت 18 سنة</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">تسجيل</button>
+  </form> -->
+
+
+</body>
+
 </html>

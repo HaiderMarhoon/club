@@ -30,6 +30,7 @@
               </td>
               <td><%= record.comment || '---' %></td>
               <td>
+                <% if (user && user.isAdmin ) { %>
                 <a href="/attendance/<%= record._id %>/edit" class="btn btn-sm btn-dark" title="تعديل الحضور">
                   <i class="fas fa-edit"></i>
                   <span class="d-none d-sm-inline">تعديل</span>
@@ -41,6 +42,7 @@
                     <span class="d-none d-sm-inline">حذف</span>
                   </button>
                 </form>
+                <% } %>
               </td>
             </tr>
           <% }) %>

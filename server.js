@@ -24,6 +24,7 @@ const methodOverride = require('method-override')
 const morgan = require('morgan')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')
+const passPlayerToView = require("./middleware/pass-player-to-view")
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -51,6 +52,7 @@ app.set('layout', 'layouts/main')
 const isSignedIn = require('./middleware/is-signed-in')
 const passUserToView = require('./middleware/pass-user-to-view')
 app.use(passUserToView)
+app.use (passPlayerToView)
 app.use((req, res, next) => {
   res.locals.user = req.session.user; // Make user available to all views
   next();

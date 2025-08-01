@@ -1,13 +1,17 @@
 <h1>مرحبا بك <%= user ? user.username : 'زائر' %>
+    <% if (currentPlayer) { %>
+      <p>أهلاً <%= currentPlayer.name %> 👋</p>
+      <% } %>
 </h1>
 <nav>
   <% if (user && user.isAdmin) { %>
-    <a href="/listings/new">إضافة لاعب</a> |
-    <a href="/listings">عرض اللاعبين</a> |
-    <a href="/auth/sign-out">تسجيل الخروج</a>
+    <a href="/listings/new" class="btn btn-primary btn-lg">إضافة لاعب</a> |
+    <a href="/listings" class="btn btn-primary btn-lg">عرض اللاعبين</a> |
+    <a href="/auth/sign-out" class="btn btn-primary btn-lg">تسجيل الخروج</a>
 
     <% } else { %>
       <a href="/auth/sign-in">تسجيل الدخول</a> |
-      <a href="/auth/sign-up">انشاء حساب</a>
+      <a href="/auth/sign-up">انشاء حساب</a> |
+      <a href="/listings/view" class="btn btn-primary btn-lg">عرض جميع اللاعبين</a>
       <% } %>
 </nav>
