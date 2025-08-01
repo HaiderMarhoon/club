@@ -3,6 +3,7 @@ const router = express.Router()
 const Player = require('../models/players')
 const Attendance = require('../models/attendance')
 const isSignedIn = require('../middleware/is-signed-in')
+const isAdmin = require('../middleware/is-admin');
 
 // Show listing index page with category links
 router.get('/', (req, res) => {
@@ -135,5 +136,8 @@ function getCategoryName(category) {
   }
   return names[category] || category;
 }
+router.get('/admin/dashboard', isAdmin, (req, res) => {
+  res.render('admin/dashboard');
+});
 
 module.exports = router
