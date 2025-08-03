@@ -1,0 +1,40 @@
+
+
+<div class="container py-5" dir="rtl">
+  <h1 class="text-center mb-5">قائمة اللاعبين المسجلين</h1>
+  
+  <% if (users.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>اسم المستخدم</th>
+            <th>اللاعب المرتبط</th>
+            <th>تاريخ الإنشاء</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach(user => { %>
+            <tr>
+              <td><%= user.username %></td>
+              <td><%= user.isPlayer.name %></td>
+              <td><%= user.createdAt.toLocaleDateString('ar-EG') %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info text-center">
+      لا يوجد حسابات لاعبين مسجلة بعد
+    </div>
+  <% } %>
+  
+  <div class="text-center mt-4">
+    <a href="/admin/create-player-account" class="btn btn-primary">
+      إنشاء حساب جديد
+    </a>
+  </div>
+</div>
+
+

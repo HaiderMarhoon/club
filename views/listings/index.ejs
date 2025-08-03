@@ -1,14 +1,16 @@
-
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-md-8 text-center">
       <h1 class="mb-4">إدارة أفرقة فئات نادي التضامن لكرة اليد</h1>
       <p class="lead mb-5">نظام متكامل لإدارة اللاعبين ومتابعة الحضور</p>
-      
+
       <div class="d-grid gap-3">
-        <% if (user && user.isAdmin ) { %>
+        <% if (user && user.isAdmin) { %>
           <a href="/listings/new" class="btn btn-success btn-lg">إضافة لاعب جديد</a>
-          <a href="/listings/category" class="btn btn-success btn-lg">  عرض اللاعبين</a>
+          <a href="/listings/category" class="btn btn-success btn-lg">عرض اللاعبين</a>
+          <a href="/admin/create-player-account" class="btn btn-warning btn-lg">إنشاء حساب للاعب</a>
+        <% } else if (currentPlayer) { %>
+          <a href="/attendance/player/<%= currentPlayer._id %>" class="btn btn-primary">سجل حضوري</a>
         <% } else { %>
           <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
         <% } %>

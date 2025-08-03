@@ -1,17 +1,17 @@
 <h1>مرحبا بك <%= user ? user.username : 'زائر' %>
-    <% if (currentPlayer) { %>
-      <p>أهلاً <%= currentPlayer.name %> 👋</p>
-      <% } %>
+  <% if (currentPlayer) { %>
+    <p>أهلاً <%= currentPlayer.name %> 👋</p>
+  <% } %>
 </h1>
-<nav>
-  <% if (user && user.isAdmin) { %>
-    <a href="/listings/new" class="btn btn-primary btn-lg">إضافة لاعب</a> |
-    <a href="/listings" class="btn btn-primary btn-lg">عرض اللاعبين</a> |
-    <a href="/auth/sign-out" class="btn btn-primary btn-lg">تسجيل الخروج</a>
 
-    <% } else { %>
-      <a href="/auth/sign-in">تسجيل الدخول</a> |
-      <a href="/auth/sign-up">انشاء حساب</a> |
-      <a href="/listings/view" class="btn btn-primary btn-lg">عرض جميع اللاعبين</a>
-      <% } %>
+<nav>
+        <% if (user && user.isAdmin) { %>
+          <a href="/listings/new" class="btn btn-success btn-lg">إضافة لاعب جديد</a>
+          <a href="/listings/category" class="btn btn-success btn-lg">عرض اللاعبين</a>
+          <a href="/admin/create-player-account" class="btn btn-warning btn-lg">إنشاء حساب للاعب</a>
+        <% } else if (currentPlayer) { %>
+          <a href="/attendance/player/<%= currentPlayer._id %>" class="btn btn-primary">سجل حضوري</a>
+        <% } else { %>
+          <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
+        <% } %>
 </nav>

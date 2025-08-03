@@ -5,6 +5,7 @@ const path = require('path')
 const expressLayouts = require('express-ejs-layouts')
 const flash = require('express-flash')
 
+
 // Database connection
 const mongoose = require('mongoose')
 mongoose.connect(process.env.MONGODB_URI)
@@ -62,6 +63,9 @@ app.use((req, res, next) => {
 const authController = require('./controllers/auth.controller')
 const listingController = require("./controllers/listing.controller")
 const attendanceRoutes = require('./controllers/attendance')
+const adminRoutes = require('./controllers/admin');
+app.use('/admin', adminRoutes); // This is correct in your existing code
+
 
 app.use('/auth', authController)
 app.use('/listings', listingController)

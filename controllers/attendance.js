@@ -80,26 +80,29 @@ router.post('/', isSignedIn, async (req, res) => {
 // View attendance history for a player
 router.get('/player/:id', isSignedIn, async (req, res) => {
   try {
-    const player = await Player.findById(req.params.id)
-    if (!player) {
-      req.flash('error', 'اللاعب غير موجود')
-      return res.redirect('/listings')
+    const player = await Player.findById(req.params.id);
+    const user = req.session.user;
+
+    // Restrict access if user is not admin and not the same player
+    if (!user.isAdmin && user.isPlayer.toString() !== player._id.toString()) {
+      req.flash('error', 'غير مصرح لك بعرض هذا السجل');
+      return res.redirect('/');
     }
-    
-    const records = await Attendance.find({ player: req.params.id })
-      .sort({ date: -1 })
-    
+
+    const records = await Attendance.find({ player: req.params.id }).sort({ date: -1 });
+
     res.render('attendance/history', {
       player,
       records,
       categoryName: getCategoryName(player.category)
-    })
+    });
   } catch (err) {
-    console.error('Error loading attendance history:', err)
-    req.flash('error', 'خطأ في تحميل سجل الحضور')
-    res.redirect(`/listings`)
+    console.error('Error loading attendance history:', err);
+    req.flash('error', 'خطأ في تحميل سجل الحضور');
+    res.redirect(`/listings`);
   }
-})
+});
+
 
 // GET Edit Form
 router.get('/:id/edit', isSignedIn, async (req, res) => {
@@ -126,10 +129,13 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
 
 // PUT Update Attendance
 router.put('/:id', isSignedIn, async (req, res) => {
+  console.log('PUT request received for:', req.params.id);
   try {
     const { status, comment, date } = req.body;
-    
+    console.log('Request body:', req.body);
+
     if (!status || !date) {
+      console.log('Validation failed - missing fields');
       req.flash('error', 'الحالة وتاريخ التدريب مطلوبان');
       return res.redirect(`/attendance/${req.params.id}/edit`);
     }
@@ -146,14 +152,16 @@ router.put('/:id', isSignedIn, async (req, res) => {
     ).populate('player');
 
     if (!attendance) {
+      console.log('Attendance not found:', req.params.id);
       req.flash('error', 'سجل الحضور غير موجود');
       return res.redirect('/attendance');
     }
 
+    console.log('Successfully updated attendance:', attendance);
     req.flash('success', 'تم تحديث سجل الحضور بنجاح');
     res.redirect(`/attendance/player/${attendance.player._id}`);
   } catch (err) {
-    console.error('Error updating attendance:', err);
+    console.error('Full error stack:', err.stack);
     req.flash('error', 'خطأ في تحديث سجل الحضور');
     res.redirect(`/attendance/${req.params.id}/edit`);
   }

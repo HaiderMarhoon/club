@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema({
     isPlayer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Player',
-        default: null
     }
 
 }
