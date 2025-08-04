@@ -1,13 +1,14 @@
 <div class="container mt-4">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
     <h2 class="mb-3 mb-md-0">
       <% if (category) { %>
         لاعبين فئة <%= categoryName %>
-      <% } else { %>
-        جميع اللاعبين
-      <% } %>
+          <% } else { %>
+            جميع اللاعبين
+            <% } %>
     </h2>
-    
+
     <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
       <a href="/listings/new" class="btn btn-primary flex-grow-1 flex-sm-grow-0">
         <i class="fas fa-plus me-1"></i> إضافة لاعب
@@ -16,11 +17,11 @@
         <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
           <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
         </a>
-      <% } else { %>
-        <button class="btn btn-success flex-grow-1 flex-sm-grow-0" disabled>
-          <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
-        </button>
-      <% } %>
+        <% } else { %>
+          <button class="btn btn-success flex-grow-1 flex-sm-grow-0" disabled>
+            <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+          </button>
+          <% } %>
     </div>
   </div>
 
@@ -43,9 +44,8 @@
       </div>
     </div>
   </div>
-
   <!-- Summary Statistics -->
-  <% if (players.length > 0) { %>
+  <% if (players.length> 0) { %>
     <div class="row mb-4 g-3">
       <div class="col-md-3">
         <div class="card bg-primary text-white">
@@ -53,7 +53,9 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="mb-0">إجمالي اللاعبين</h6>
-                <h3 class="mb-0"><%= players.length %></h3>
+                <h3 class="mb-0">
+                  <%= players.length %>
+                </h3>
               </div>
               <i class="fas fa-users fa-2x opacity-50"></i>
             </div>
@@ -66,7 +68,10 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="mb-0">أفضل نسبة حضور</h6>
-                <h3 class="mb-0"><%= Math.max(...players.map(p => p.totalRecords > 0 ? Math.round((p.presentCount / p.totalRecords) * 100) : 0)) %>%</h3>
+                <h3 class="mb-0">
+                  <%= Math.max(...players.map(p=> p.totalRecords > 0 ? Math.round((p.presentCount / p.totalRecords) *
+                    100) : 0)) %>%
+                </h3>
               </div>
               <i class="fas fa-star fa-2x opacity-50"></i>
             </div>
@@ -80,7 +85,8 @@
               <div>
                 <h6 class="mb-0">متوسط الحضور</h6>
                 <h3 class="mb-0">
-                  <%= Math.round(players.reduce((sum, p) => sum + (p.totalRecords > 0 ? (p.presentCount / p.totalRecords) * 100 : 0), 0) / players.length) %>%
+                  <%= Math.round(players.reduce((sum, p)=> sum + (p.totalRecords > 0 ? (p.presentCount / p.totalRecords)
+                    * 100 : 0), 0) / players.length) %>%
                 </h3>
               </div>
               <i class="fas fa-chart-line fa-2x opacity-50"></i>
@@ -94,7 +100,10 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="mb-0">أسوأ نسبة حضور</h6>
-                <h3 class="mb-0"><%= Math.min(...players.map(p => p.totalRecords > 0 ? Math.round((p.presentCount / p.totalRecords) * 100) : 0)) %>%</h3>
+                <h3 class="mb-0">
+                  <%= Math.min(...players.map(p=> p.totalRecords > 0 ? Math.round((p.presentCount / p.totalRecords) *
+                    100) : 0)) %>%
+                </h3>
               </div>
               <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
             </div>
@@ -102,122 +111,120 @@
         </div>
       </div>
     </div>
-  <% } %>
+    <% } %>
 
-  <% if (players.length > 0) { %>
-    <div class="table-responsive">
-      <table class="table table-striped table-hover" id="playersTable">
-        <thead class="table-dark">
-          <tr>
-            <th width="5%">#</th>
-            <th width="20%">اسم اللاعب</th>
-            <th width="10%" class="text-center">حضور</th>
-            <th width="10%" class="text-center">تأخر</th>
-            <th width="10%" class="text-center">غياب</th>
-            <th width="15%" class="text-center">النسبة</th>
-            <th width="30%" class="text-center">الإجراءات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% 
-          function getPercentageClass(percentage) { 
-            if (percentage >= 80) return 'success';
-            if (percentage >= 50) return 'warning';
-            return 'danger';
-          }
-          
-          players.forEach((player, index) => { 
-            const totalRecords = player.totalRecords || 0;
-            const presentCount = player.presentCount || 0;
-            const lateCount = player.lateCount || 0;
-            const absentCount = player.absentCount || 0;
-            const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 0;
-          %>
-            <tr>
-              <td><%= index + 1 %></td>
-              <td>
-                <div class="d-flex align-items-center">
-                  <%= player.name %>
-                  <% if (percentage >= 90) { %>
-                    <span class="badge bg-success ms-2">ممتاز</span>
-                  <% } else if (percentage >= 70) { %>
-                    <span class="badge bg-primary ms-2">جيد</span>
-                  <% } else if (percentage < 50 && totalRecords > 5) { %>
-                    <span class="badge bg-danger ms-2">تحت الملاحظة</span>
+      <% if (players.length> 0) { %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover" id="playersTable">
+            <thead class="table-dark">
+              <tr>
+                <th width="5%">#</th>
+                <th width="20%">اسم اللاعب</th>
+                <th width="10%" class="text-center">حضور</th>
+                <th width="10%" class="text-center">تأخر</th>
+                <th width="10%" class="text-center">غياب</th>
+                <th width="15%" class="text-center">النسبة</th>
+                <th width="30%" class="text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% function getPercentageClass(percentage) { if (percentage>= 80) return 'success';
+                if (percentage >= 50) return 'warning';
+                return 'danger';
+                }
+
+                players.forEach((player, index) => {
+                const totalRecords = player.totalRecords || 0;
+                const presentCount = player.presentCount || 0;
+                const lateCount = player.lateCount || 0;
+                const absentCount = player.absentCount || 0;
+                const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 0;
+                %>
+                <tr>
+                  <td>
+                    <%= index + 1 %>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <%= player.name %>
+                        <% if (percentage>= 90) { %>
+                          <span class="badge bg-success ms-2">ممتاز</span>
+                          <% } else if (percentage>= 70) { %>
+                            <span class="badge bg-primary ms-2">جيد</span>
+                            <% } else if (percentage < 50 && totalRecords> 5) { %>
+                              <span class="badge bg-danger ms-2">تحت الملاحظة</span>
+                              <% } %>
+                    </div>
+                  </td>
+                  <td class="text-center <%= presentCount > 0 ? 'text-success fw-bold' : '' %>">
+                    <%= presentCount %>
+                  </td>
+                  <td class="text-center <%= lateCount > 0 ? 'text-warning fw-bold' : '' %>">
+                    <%= lateCount %>
+                  </td>
+                  <td class="text-center <%= absentCount > 0 ? 'text-danger fw-bold' : '' %>">
+                    <%= absentCount %>
+                  </td>
+                  <td class="text-center">
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar bg-<%= getPercentageClass(percentage) %>" role="progressbar"
+                        style="width: <%= percentage %>%" aria-valuenow="<%= percentage %>" aria-valuemin="0"
+                        aria-valuemax="100">
+                        <%= percentage %>%
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
+                      <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info" title="سجل الحضور">
+                        <i class="fas fa-history"></i>
+                        <span class="d-none d-sm-inline">الحضور</span>
+                      </a>
+                      <a href="/listings/<%= player._id %>/edit" class="btn btn-sm btn-warning" title="تعديل">
+                        <i class="fas fa-edit"></i>
+                        <span class="d-none d-sm-inline">تعديل</span>
+                      </a>
+                      <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger"
+                          onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')" title="حذف">
+                          <i class="fas fa-trash-alt"></i>
+                          <span class="d-none d-sm-inline">حذف</span>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+          <div class="text-muted">
+            إجمالي اللاعبين: <%= players.length %>
+              <% if (category) { %>
+                | الفئة: <%= categoryName %>
                   <% } %>
-                </div>
-              </td>
-              <td class="text-center <%= presentCount > 0 ? 'text-success fw-bold' : '' %>">
-                <%= presentCount %>
-              </td>
-              <td class="text-center <%= lateCount > 0 ? 'text-warning fw-bold' : '' %>">
-                <%= lateCount %>
-              </td>
-              <td class="text-center <%= absentCount > 0 ? 'text-danger fw-bold' : '' %>">
-                <%= absentCount %>
-              </td>
-              <td class="text-center">
-                <div class="progress" style="height: 20px;">
-                  <div class="progress-bar bg-<%= getPercentageClass(percentage) %>" 
-                       role="progressbar" 
-                       style="width: <%= percentage %>%" 
-                       aria-valuenow="<%= percentage %>" 
-                       aria-valuemin="0" 
-                       aria-valuemax="100">
-                    <%= percentage %>%
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
-                  <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info" title="سجل الحضور">
-                    <i class="fas fa-history"></i>
-                    <span class="d-none d-sm-inline">الحضور</span>
-                  </a>
-                  <a href="/listings/<%= player._id %>/edit" class="btn btn-sm btn-warning" title="تعديل">
-                    <i class="fas fa-edit"></i>
-                    <span class="d-none d-sm-inline">تعديل</span>
-                  </a>
-                  <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')" title="حذف">
-                      <i class="fas fa-trash-alt"></i>
-                      <span class="d-none d-sm-inline">حذف</span>
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-      <div class="text-muted">
-        إجمالي اللاعبين: <%= players.length %> 
-        <% if (category) { %>
-          | الفئة: <%= categoryName %>
-        <% } %>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-outline-primary" onclick="printTable()">
-          <i class="fas fa-print me-1"></i> طباعة
-        </button>
-        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-          <i class="fas fa-file-excel me-1"></i> تصدير
-        </button>
-      </div>
-    </div>
-  <% } else { %>
-    <div class="alert alert-info text-center py-4">
-      <i class="fas fa-info-circle fa-2x mb-3"></i>
-      <h4>لا يوجد لاعبين مسجلين <% if (category) { %>في هذه الفئة<% } %></h4>
-      <a href="/listings/new" class="btn btn-primary mt-2">
-        <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
-      </a>
-    </div>
-  <% } %>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline-primary" onclick="printTable()">
+              <i class="fas fa-print me-1"></i> طباعة
+            </button>
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+              <i class="fas fa-file-excel me-1"></i> تصدير
+            </button>
+          </div>
+        </div>
+        <% } else { %>
+          <div class="alert alert-info text-center py-4">
+            <i class="fas fa-info-circle fa-2x mb-3"></i>
+            <h4>لا يوجد لاعبين مسجلين <% if (category) { %>في هذه الفئة<% } %>
+            </h4>
+            <a href="/listings/new" class="btn btn-primary mt-2">
+              <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
+            </a>
+          </div>
+          <% } %>
 </div>
 
 <!-- Export Modal -->
@@ -245,7 +252,7 @@
               <option value="current">الصفحة الحالية فقط</option>
               <% if (category) { %>
                 <option value="category">الفئة الحالية فقط</option>
-              <% } %>
+                <% } %>
             </select>
           </div>
           <div class="mb-3">
@@ -291,16 +298,16 @@
   function exportData() {
     const form = document.getElementById('exportForm');
     const formData = new FormData(form);
-    
-    if (category) 
+
+    if (category)
       formData.append('category', '<%= category %>');
-    
+
     const params = new URLSearchParams(formData).toString();
     window.location.href = `/listings/export?${params}`;
   }
 
   // Initialize select2 for multi-select
-  $(document).ready(function() {
+  $(document).ready(function () {
     $('#exportColumns').select2({
       placeholder: "اختر الأعمدة",
       width: '100%',

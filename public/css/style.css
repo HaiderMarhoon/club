@@ -12,11 +12,17 @@
 /* Base Styles */
 body {
   font-family: 'Tajawal', sans-serif;
-  background-color: #f5f5f5;
+  background-color: #984646;
   line-height: 1.6;
   color: #333;
   margin: 0;
   padding: 0;
+}
+
+#logo {
+  align-items: center;
+  width: 300px;
+  border-color: #2c3e50;
 }
 
 /* Header & Navigation */
@@ -306,6 +312,13 @@ body {
     margin: 0 auto;
   }
 
+
+  #logo {
+    align-items: center;
+    width: 300px;
+    border-color: #2c3e50;
+  }
+
   .action-buttons {
     display: flex;
     gap: 10px;
@@ -430,7 +443,7 @@ body {
 /* Base Styles */
 body {
   font-family: 'Tajawal', sans-serif;
-  background-color: #f5f5f5;
+  background-color: #3c6fbc;
   line-height: 1.6;
   color: #333;
   margin: 0;
@@ -444,10 +457,10 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.image {
-  width: 40px;
-  max-width: 100%;
+#logo {
   align-items: center;
+  width: 300px;
+  border-color: #2c3e50;
 }
 
 .navbar-brand {
@@ -524,11 +537,8 @@ body {
     background: transparent;
   }
 
-  image {
-    height: 10px;
-    width: 20px;
-    align-items: center;
-
+  #logo {
+    border: #2c3e50;
   }
 
   .table {

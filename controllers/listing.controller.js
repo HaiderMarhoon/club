@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 
 // View form to add a new player
 router.get('/new', isSignedIn, (req, res) => {
-  res.render('listings/new', { 
+  res.render('listings/new', {
     title: 'إضافة لاعب جديد'  // Add this title
   })
 })
@@ -50,14 +50,14 @@ router.get('/:category', isSignedIn, async (req, res) => {
   try {
     const category = req.params.category;
     const players = await Player.find({ category }).sort({ name: 1 });
-    
+
     // Get attendance summary for each player
     const playersWithAttendance = await Promise.all(players.map(async player => {
       const attendanceRecords = await Attendance.find({ player: player._id });
       const presentCount = attendanceRecords.filter(a => a.status === 'present').length;
       const lateCount = attendanceRecords.filter(a => a.status === 'late').length;
       const absentCount = attendanceRecords.filter(a => a.status === 'absent').length;
-      
+
       return {
         ...player.toObject(),
         presentCount,
@@ -66,9 +66,9 @@ router.get('/:category', isSignedIn, async (req, res) => {
         totalRecords: attendanceRecords.length
       };
     }));
-    
-    res.render('listings/category', { 
-      category, 
+
+    res.render('listings/category', {
+      category,
       players: playersWithAttendance,
       categoryName: getCategoryName(category) // Make sure this is included
     });
@@ -76,6 +76,55 @@ router.get('/:category', isSignedIn, async (req, res) => {
     console.error('Error loading players by category:', error);
     req.flash('error', 'فشل في تحميل اللاعبين');
     res.redirect('/listings');
+  }
+});
+
+// Add this route to your listings router
+// In your routes file
+router.get('/export', isSignedIn, async (req, res) => {
+  try {
+    const { format, range, category, startDate, endDate } = req.query;
+    let columns = req.query.columns || ['name', 'category', 'present', 'late', 'absent', 'percentage'];
+    
+    // If columns comes as string, convert to array
+    if (typeof columns === 'string') {
+      columns = [columns];
+    }
+
+    // Build your query and get data
+    // ... (your existing data fetching logic)
+
+    // Handle PDF export (example using pdfkit)
+    if (format === 'pdf') {
+      const PDFDocument = require('pdfkit');
+      const doc = new PDFDocument();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=players.pdf');
+      
+      doc.pipe(res);
+      
+      // Add Arabic text support
+      doc.registerFont('Arabic', path.join(__dirname, 'fonts/arial.ttf'));
+      
+      // Add content
+      doc.font('Arabic')
+         .fontSize(12)
+         .text('قائمة اللاعبين', { align: 'right' });
+      
+      // Add your data table here
+      // ...
+      
+      doc.end();
+      return;
+    }
+
+    // Handle other formats...
+    
+  } catch (error) {
+    console.error('Export error:', error);
+    req.flash('error', 'فشل في تصدير البيانات');
+    res.redirect('back');
   }
 });
 
@@ -102,7 +151,7 @@ router.put('/:id', isSignedIn, async (req, res) => {
       name: req.body.name,
       category: req.body.category
     }, { new: true })
-    
+
     req.flash('success', 'تم تحديث بيانات اللاعب بنجاح')
     res.redirect(`/listings/${player.category}`)
   } catch (error) {
@@ -117,7 +166,7 @@ router.delete('/:id', isSignedIn, async (req, res) => {
   try {
     const player = await Player.findByIdAndDelete(req.params.id)
     await Attendance.deleteMany({ player: req.params.id })
-    
+
     req.flash('success', 'تم حذف اللاعب بنجاح')
     res.redirect(`/listings/${player.category}`)
   } catch (error) {
