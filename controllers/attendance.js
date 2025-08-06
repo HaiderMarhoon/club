@@ -105,6 +105,7 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
 
 
 // GET Edit Form
+// GET Edit Form
 router.get('/:id/edit', isSignedIn, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id).populate('player');
@@ -127,15 +128,13 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
   }
 });
 
+
 // PUT Update Attendance
 router.put('/:id', isSignedIn, async (req, res) => {
-  console.log('PUT request received for:', req.params.id);
   try {
-    const { status, comment, date } = req.body;
-    console.log('Request body:', req.body);
+    const { status, comment, date } = req.body; // Changed from 'comment' to 'notes'
 
     if (!status || !date) {
-      console.log('Validation failed - missing fields');
       req.flash('error', 'الحالة وتاريخ التدريب مطلوبان');
       return res.redirect(`/attendance/${req.params.id}/edit`);
     }
@@ -152,16 +151,14 @@ router.put('/:id', isSignedIn, async (req, res) => {
     ).populate('player');
 
     if (!attendance) {
-      console.log('Attendance not found:', req.params.id);
       req.flash('error', 'سجل الحضور غير موجود');
       return res.redirect('/attendance');
     }
 
-    console.log('Successfully updated attendance:', attendance);
     req.flash('success', 'تم تحديث سجل الحضور بنجاح');
     res.redirect(`/attendance/player/${attendance.player._id}`);
   } catch (err) {
-    console.error('Full error stack:', err.stack);
+    console.error('Error updating attendance:', err);
     req.flash('error', 'خطأ في تحديث سجل الحضور');
     res.redirect(`/attendance/${req.params.id}/edit`);
   }

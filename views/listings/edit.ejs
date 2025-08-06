@@ -1,30 +1,154 @@
-
-
 <div class="container mt-4">
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h2 class="mb-4">تعديل بيانات اللاعب</h2>
-      
-      <form action="/listings/<%= player._id %>?_method=PUT" method="POST">
-        <div class="mb-3">
-          <label for="name" class="form-label">اسم اللاعب</label>
-          <input type="text" class="form-control" id="name" name="name" value="<%= player.name %>" required>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">تعديل بيانات اللاعب: <%= player.name %></h2>
         </div>
-        
-        <div class="mb-3">
-          <label for="category" class="form-label">الفئة</label>
-          <select class="form-select" id="category" name="category" required>
-            <option value="under14" <%= player.category === 'under14' ? 'selected' : '' %>>تجمع (Under 14)</option>
-            <option value="under16" <%= player.category === 'under16' ? 'selected' : '' %>>أشبال (Under 16)</option>
-            <option value="under18" <%= player.category === 'under18' ? 'selected' : '' %>>ناشئين (Under 18)</option>
-          </select>
+        <div class="card-body">
+          <form action="/listings/<%= player._id %>?_method=PUT" method="POST">
+            <!-- Basic Information Section -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="name" class="form-label">اسم اللاعب <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="name" name="name" value="<%= player.name %>" required>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="category" class="form-label">الفئة <span class="text-danger">*</span></label>
+                  <select class="form-select" id="category" name="category" required>
+                    <option value="under14" <%= player.category === 'under14' ? 'selected' : '' %>>تجمع (Under 14)</option>
+                    <option value="under16" <%= player.category === 'under16' ? 'selected' : '' %>>أشبال (Under 16)</option>
+                    <option value="under18" <%= player.category === 'under18' ? 'selected' : '' %>>ناشئين (Under 18)</option>
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="shirtNumber" class="form-label">رقم القميص</label>
+                  <input type="number" class="form-control" id="shirtNumber" name="shirtNumber" 
+                         min="1" max="99" value="<%= player.shirtNumber %>">
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="height" class="form-label">الطول (سم)</label>
+                  <input type="number" class="form-control" id="height" name="height" 
+                         min="100.00" max="250.00" value="<%= player.height %>">
+                </div>
+                
+                <div class="mb-3">
+                  <label for="weight" class="form-label">الوزن (كجم)</label>
+                  <input type="number" class="form-control" id="weight" name="weight" 
+                         min="30" max="150" value="<%= player.weight %>">
+                </div>
+                
+                <div class="mb-3">
+                  <label for="phoneNumber" class="form-label">رقم الهاتف</label>
+                  <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
+                         value="<%= player.phoneNumber %>" pattern="[0-9]{8}">
+                  <small class="text-muted">يجب أن يحتوي على 10-15 رقمًا</small>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sports Tests Section -->
+            <div class="mb-4">
+              <h5 class="border-bottom pb-2">الاختبارات الرياضية</h5>
+              <div id="sportsTestsContainer">
+                <% if (player.sportsTests && player.sportsTests.length > 0) { %>
+                  <% player.sportsTests.forEach((test, index) => { %>
+                    <div class="row mb-3 test-row" data-index="<%= index %>">
+                      <div class="col-md-4">
+                        <input type="text" class="form-control" name="sportsTests[<%= index %>][testName]" 
+                               value="<%= test.testName %>" placeholder="اسم الاختبار">
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" class="form-control" name="sportsTests[<%= index %>][result]" 
+                               value="<%= test.result %>" placeholder="النتيجة">
+                      </div>
+                      <div class="col-md-3">
+                        <input type="date" class="form-control" name="sportsTests[<%= index %>][date]" 
+                               value="<%= test.date ? test.date.toISOString().split('T')[0] : '' %>">
+                      </div>
+                      <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm w-100 remove-test">
+                          <i class="fas fa-trash">حذف </i>
+                        </button>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <div class="alert alert-info">لا توجد اختبارات مسجلة</div>
+                <% } %>
+              </div>
+              
+              <button type="button" id="addTestBtn" class="btn btn-sm btn-success mt-2">
+                <i class="fas fa-plus me-1"></i> إضافة اختبار
+              </button>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="/listings/profile/<%= player._id %>" class="btn btn-outline-secondary me-md-2">
+                <i class="fas fa-times me-1"></i> إلغاء
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> حفظ التعديلات
+              </button>
+            </div>
+          </form>
         </div>
-        
-        <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
-          <a href="/listings/<%= player.category %>" class="btn btn-outline-secondary">إلغاء</a>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add new test row
+    document.getElementById('addTestBtn').addEventListener('click', function() {
+      const container = document.getElementById('sportsTestsContainer');
+      const index = document.querySelectorAll('.test-row').length;
+      
+      const newRow = document.createElement('div');
+      newRow.className = 'row mb-3 test-row';
+      newRow.dataset.index = index;
+      
+      newRow.innerHTML = `
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="sportsTests[${index}][testName]" placeholder="اسم الاختبار">
+        </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control" name="sportsTests[${index}][result]" placeholder="النتيجة">
+        </div>
+        <div class="col-md-3">
+          <input type="date" class="form-control" name="sportsTests[${index}][date]">
+        </div>
+        <div class="col-md-2">
+          <button type="button" class="btn btn-danger btn-sm w-100 remove-test">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      
+      container.appendChild(newRow);
+    });
+    
+    // Remove test row
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-test')) {
+        e.target.closest('.test-row').remove();
+        // Re-index remaining test rows
+        document.querySelectorAll('.test-row').forEach((row, index) => {
+          row.dataset.index = index;
+          row.querySelectorAll('input').forEach(input => {
+            const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+            input.name = name;
+          });
+        });
+      }
+    });
+  });
+</script>
