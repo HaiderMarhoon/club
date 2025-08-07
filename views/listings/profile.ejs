@@ -90,7 +90,7 @@
             </div>
           </div>
         </div>
-
+        <%}%>
         <!-- Attendance History -->
         <div class="card">
           <div class="card-header bg-dark text-white">
@@ -122,7 +122,7 @@
                             %>
                           </span>
                         </td>
-                        <td><%= record.notes || 'لا يوجد' %></td>
+                        <td><%= record.comment || 'لا يوجد' %></td>
                       </tr>
                     <% }); %>
                   </tbody>
@@ -137,6 +137,5 @@
           </div>
         </div>
       </div>
-    <%}%>
   </div>
 </div>

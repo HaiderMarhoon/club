@@ -1,8 +1,5 @@
 
 <h1>مرحبا بك <%= user ? user.username : 'زائر' %>
-  <% if (currentPlayer) { %>
-    <p>أهلاً <%= currentPlayer.name %> 👋</p>
-  <% } %>
 </h1>
 <img src="/assest/logo.jpeg" alt="logo" id="logo">
 <nav>
@@ -13,9 +10,9 @@
         <% } else if (currentPlayer) { %>
           <a href="/listings/profile/<%= currentPlayer._id %>" class="btn btn-sm btn-primary" title="عرض الملف">
             <i class="fas fa-user"></i>
-            <span class="d-none d-sm-inline">الملف التعريفي</span>
+            <span class="d-none d-sm-inline"></span>
+            الملف التعريفي
           </a>
-          <a href="/attendance/player/<%= currentPlayer._id %>" class="btn btn-primary">سجل حضوري</a>
         <% } else { %>
           <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
         <% } %>

@@ -11,7 +11,8 @@
           <a href="/listings/category" class="btn btn-success btn-lg">عرض اللاعبين</a>
           <a href="/admin/create-player-account" class="btn btn-warning btn-lg">إنشاء حساب للاعب</a>
         <% } else if (currentPlayer) { %>
-          <a href="/attendance/player/<%= currentPlayer._id %>" class="btn btn-primary">سجل حضوري</a>
+          <a href="/listings/profile/<%= currentPlayer._id %>" class="btn btn-sm btn-primary" title="عرض الملف"> الملف التعريفي</a>
+
         <% } else { %>
           <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
         <% } %>
