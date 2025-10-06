@@ -28,10 +28,6 @@ router.post('/sign-up', async (req, res) => {
     if (userExists) {
       return res.send('اسم المستخدم موجود بالفعل')
     }
-    const player = await Player.create({
-      name: username, 
-      category: req.body.category 
-    })
 
     // Hash password
     const hashedPassword = bcrypt.hashSync(password, 10)
@@ -40,7 +36,6 @@ router.post('/sign-up', async (req, res) => {
     const user = await User.create({
       username,
       password: hashedPassword,
-      isPlayer: player._id
     })
 
     // Automatically log in after sign up

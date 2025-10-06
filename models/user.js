@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
     isPlayer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Player',
+    },
+    isView:{
+        type: Boolean,
+        default:false
     }
 
 }

@@ -4,6 +4,9 @@ const app = express()
 const path = require('path')
 const expressLayouts = require('express-ejs-layouts')
 const flash = require('express-flash')
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
 
 // Database connection
@@ -12,6 +15,21 @@ mongoose.connect(process.env.MONGODB_URI)
 mongoose.connection.on('connected', () => {
   console.log(`Connected to MongoDB ${mongoose.connection.name} 🙃.`)
 })
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'football-players',
+    allowed_formats: ['jpg', 'jpeg', 'png'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // View engine setup
 app.set('view engine', 'ejs')

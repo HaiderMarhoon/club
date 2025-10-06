@@ -125,7 +125,7 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
     }
     res.render('listings/edit', {
       player,
-      categories: ['under14', 'under16', 'under18'] // Added for dropdown
+      categories: ['under14', 'under16', 'under18', 'under20', 'man'] // Added for dropdown
     })
   } catch (error) {
     console.error('Error loading player for edit:', error)
@@ -182,7 +182,9 @@ function getCategoryName(category) {
   const names = {
     under14: 'تجمع (Under 14)',
     under16: 'أشبال (Under 16)',
-    under18: 'ناشئين (Under 18)'
+    under18: 'ناشئين (Under 18)',
+    under20: 'تحت 20 سنة (Under 20)',
+    man: 'الرجال'
   }
   return names[category] || category
 }

@@ -8,9 +8,10 @@ const playerSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['under14', 'under16', 'under18'],
+    enum: ['under14', 'under16', 'under18','under20', 'man'],
     required: true
   },
+  
   height: {
     type: Number,
     min: [100, 'الطول يجب أن يكون على الأقل 100 سم'],

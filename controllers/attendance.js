@@ -189,7 +189,9 @@ function getCategoryName(category) {
   const names = {
     under14: 'تجمع (Under 14)',
     under16: 'أشبال (Under 16)',
-    under18: 'ناشئين (Under 18)'
+    under18: 'ناشئين (Under 18)',
+    under20: 'تحت 20 سنة (Under 20)',
+    man: 'الرجال'
   }
   return names[category] || category
 }

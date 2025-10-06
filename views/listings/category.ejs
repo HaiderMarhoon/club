@@ -41,6 +41,12 @@
         <a href="/listings/under18" class="btn btn-sm <%= category === 'under18' ? 'btn-dark' : 'btn-outline-dark' %>">
           تحت 18 سنة
         </a>
+        <a href="/listings/under20" class="btn btn-sm <%= category === 'under20' ? 'btn-dark' : 'btn-outline-dark' %>">
+          تحت 20 سنة
+        </a>
+        <a href="/listings/man" class="btn btn-sm <%= category === 'man' ? 'btn-dark' : 'btn-outline-dark' %>">
+          الرجال
+        </a>
       </div>
     </div>
   </div>
@@ -124,7 +130,10 @@
                 <th width="10%" class="text-center">تأخر</th>
                 <th width="10%" class="text-center">غياب</th>
                 <th width="15%" class="text-center">النسبة</th>
+                <% if (user && user.isAdmin) { %>
                 <th width="30%" class="text-center">الإجراءات</th>
+                <% } %>
+                <th width="15%" class="text-center">الملف الشخصي</th>
               </tr>
             </thead>
             <tbody>
@@ -174,6 +183,8 @@
                       </div>
                     </div>
                   </td>
+
+                  <% if (user && user.isAdmin) { %>
                   <td>
                     <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
                       <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info" title="سجل الحضور">
@@ -197,6 +208,16 @@
                       </form>
                     </div>
                   </td>
+                  <% } %>
+                  <td>
+                    <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
+                      <a href="/listings/profile/<%= player._id %>" class="btn btn-sm btn-primary" title=" عرض الملف">
+                        <i class="fas fa-user"></i>
+                        <span class="d-none d-sm-inline"></span>
+                        الملف التعريفي
+                      </a>
+                    </div>
+                  </td> 
                 </tr>
                 <% }) %>
             </tbody>
@@ -219,6 +240,7 @@
             </button>
           </div>
         </div>
+        <% if (user && user.isAdmin) { %>
         <% } else { %>
           <div class="alert alert-info text-center py-4">
             <i class="fas fa-info-circle fa-2x mb-3"></i>
@@ -229,6 +251,7 @@
             </a>
           </div>
           <% } %>
+        <% }%>
 </div>
 
 <!-- Export Modal -->
