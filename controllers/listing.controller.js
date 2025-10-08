@@ -6,8 +6,8 @@ const isSignedIn = require('../middleware/is-signed-in')
 const isAdmin = require('../middleware/is-admin')
 
 // Show listing index page with category links
-router.get('/', (req, res) => {
-  res.render('listings/index')
+app.get('/', (req, res) => {
+  res.render('index.ejs', { user: req.session.user, currentPlayer: req.session.player ,  })
 })
 
 // View form to add a new player (updated with new fields)

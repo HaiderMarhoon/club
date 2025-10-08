@@ -12,7 +12,8 @@
           <a href="/admin/create-player-account" class="btn btn-warning btn-lg">إنشاء حساب للاعب</a>
         <% } else if (currentPlayer) { %>
           <a href="/listings/profile/<%= currentPlayer._id %>" class="btn btn-sm btn-primary" title="عرض الملف"> الملف التعريفي</a>
-
+        <% } else if (user) { %>
+          <a href="/listings/category" class="btn btn-primary btn-lg">عرض اللاعبين</a>
         <% } else { %>
           <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
         <% } %>

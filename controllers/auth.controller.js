@@ -4,8 +4,8 @@ const bcrypt = require('bcrypt')
 const User = require('../models/user.js')
 
 
-router.get('/', (req, res) => {
-  res.send('does the auth route work?')
+app.get('/', (req, res) => {
+  res.render('home.ejs', { user: req.session.user, currentPlayer: req.session.player })
 })
 
 // SIGN UP VIEW
@@ -43,7 +43,8 @@ router.post('/sign-up', async (req, res) => {
       username: user.username,
       _id: user._id,
       isAdmin: user.isAdmin,
-      isPlayer: user.isPlayer
+      isPlayer: user.isPlayer,
+      isView: user.isView
     }
 
     res.redirect('/')
@@ -78,7 +79,8 @@ router.post('/sign-in', async (req, res) => {
     username: userInDatabase.username,
     _id: userInDatabase._id,
     isAdmin: userInDatabase.isAdmin,
-    isPlayer: userInDatabase.isPlayer
+    isPlayer: userInDatabase.isPlayer,
+    isView: userInDatabase.isView
   }
 
   req.session.save(() => {

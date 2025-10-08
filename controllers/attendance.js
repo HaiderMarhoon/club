@@ -83,25 +83,36 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
     const player = await Player.findById(req.params.id);
     const user = req.session.user;
 
-    // Restrict access if user is not admin and not the same player
-    if (!user.isAdmin && user.isPlayer.toString() !== player._id.toString()) {
+    if (!player) {
+      req.flash('error', 'اللاعب غير موجود');
+      return res.redirect('/listings');
+    }
+
+    const isSamePlayer = user.isPlayer && user._id.toString() === player._id.toString();
+    const canView = user.isAdmin || user.isView || isSamePlayer;
+
+    if (!canView) {
       req.flash('error', 'غير مصرح لك بعرض هذا السجل');
       return res.redirect('/');
     }
 
-    const records = await Attendance.find({ player: req.params.id }).sort({ date: -1 });
+    // 📊 Get attendance records (sorted by date descending)
+    const records = await Attendance.find({ player: player._id }).sort({ date: -1 });
 
+    // 🧾 Render attendance history page
     res.render('attendance/history', {
       player,
       records,
       categoryName: getCategoryName(player.category)
     });
+
   } catch (err) {
     console.error('Error loading attendance history:', err);
     req.flash('error', 'خطأ في تحميل سجل الحضور');
-    res.redirect(`/listings`);
+    res.redirect('/listings');
   }
 });
+
 
 
 // GET Edit Form

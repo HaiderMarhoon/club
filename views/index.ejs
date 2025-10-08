@@ -13,7 +13,10 @@
             <span class="d-none d-sm-inline"></span>
             الملف التعريفي
           </a>
+        <% } else if (user) { %>
+          <a href="/listings/category" class="btn btn-primary btn-lg">عرض اللاعبين</a>
         <% } else { %>
           <a href="/auth/sign-in" class="btn btn-outline-primary btn-lg">تسجيل الدخول للبدء</a>
         <% } %>
+
 </nav>

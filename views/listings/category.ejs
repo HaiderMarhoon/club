@@ -8,21 +8,23 @@
             جميع اللاعبين
             <% } %>
     </h2>
-
-    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-      <a href="/listings/new" class="btn btn-primary flex-grow-1 flex-sm-grow-0">
-        <i class="fas fa-plus me-1"></i> إضافة لاعب
-      </a>
-      <% if (category) { %>
-        <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
-          <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+    
+    <% if (user && user.isAdmin) { %>
+      <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+        <a href="/listings/new" class="btn btn-primary flex-grow-1 flex-sm-grow-0">
+          <i class="fas fa-plus me-1"></i> إضافة لاعب
         </a>
-        <% } else { %>
-          <button class="btn btn-success flex-grow-1 flex-sm-grow-0" disabled>
+        <% if (category) { %>
+          <a href="/attendance/<%= category %>" class="btn btn-success flex-grow-1 flex-sm-grow-0">
             <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
-          </button>
-          <% } %>
-    </div>
+          </a>
+          <% } else { %>
+            <button class="btn btn-success flex-grow-1 flex-sm-grow-0" disabled>
+              <i class="fas fa-clipboard-check me-1"></i> تسجيل الحضور
+            </button>
+            <% } %>
+      </div>
+    <% } %>
   </div>
 
   <!-- Category Filter -->
@@ -211,6 +213,10 @@
                   <% } %>
                   <td>
                     <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
+                      <a href="/attendance/player/<%= player._id %>" class="btn btn-sm btn-info" title="سجل الحضور">
+                        <i class="fas fa-history"></i>
+                        <span class="d-none d-sm-inline">الحضور</span>
+                      </a>
                       <a href="/listings/profile/<%= player._id %>" class="btn btn-sm btn-primary" title=" عرض الملف">
                         <i class="fas fa-user"></i>
                         <span class="d-none d-sm-inline"></span>
@@ -240,18 +246,14 @@
             </button>
           </div>
         </div>
-        <% if (user && user.isAdmin) { %>
         <% } else { %>
           <div class="alert alert-info text-center py-4">
             <i class="fas fa-info-circle fa-2x mb-3"></i>
             <h4>لا يوجد لاعبين مسجلين <% if (category) { %>في هذه الفئة<% } %>
             </h4>
-            <a href="/listings/new" class="btn btn-primary mt-2">
-              <i class="fas fa-plus me-1"></i> إضافة لاعب جديد
-            </a>
           </div>
-          <% } %>
-        <% }%>
+        <% } %>
+
 </div>
 
 <!-- Export Modal -->
