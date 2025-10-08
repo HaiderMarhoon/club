@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt')
 const User = require('../models/user.js')
 
 
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.render('home.ejs', { user: req.session.user, currentPlayer: req.session.player })
 })
 
