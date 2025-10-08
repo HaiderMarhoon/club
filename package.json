@@ -21,12 +21,15 @@
     "express-session": "^1.17.3",
     "method-override": "^3.0.0",
     "mongodb": "^6.20.0",
-    "mongoose": "^7.0.3",
+    "mongoose": "^7.8.7",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.7.0"
+  }
 }

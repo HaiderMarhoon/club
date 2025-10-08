@@ -113,10 +113,6 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
   }
 });
 
-
-
-// GET Edit Form
-// GET Edit Form
 router.get('/:id/edit', isSignedIn, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id).populate('player');

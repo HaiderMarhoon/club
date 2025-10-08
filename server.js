@@ -51,18 +51,18 @@ app.use(methodOverride('_method'))
 app.use(morgan('dev'))
 app.set('trust proxy', 1)
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'default_secret', 
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
   }),
   cookie: { 
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
+    maxAge: 1000 * 60 * 60 * 24, 
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production'
+    secure: process.env.NODE_ENV === 'production' 
   }
-}))
+}));
 app.use(flash())
 app.use(expressLayouts)
 app.set('layout', 'layouts/main')
@@ -82,9 +82,8 @@ const authController = require('./controllers/auth.controller')
 const listingController = require("./controllers/listing.controller")
 const attendanceRoutes = require('./controllers/attendance')
 const adminRoutes = require('./controllers/admin');
+
 app.use('/admin', adminRoutes); // This is correct in your existing code
-
-
 app.use('/auth', authController)
 app.use('/listings', listingController)
 app.use('/attendance', attendanceRoutes)
