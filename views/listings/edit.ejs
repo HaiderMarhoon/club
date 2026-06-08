@@ -1,59 +1,76 @@
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h2 class="mb-0">تعديل بيانات اللاعب: <%= player.name %></h2>
+<div class="container" style="max-width: 700px;">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: 1.3rem; margin: 0;">تعديل بيانات اللاعب: <%= player.name %></h2>
+    </div>
+    <div class="card-body">
+      <form action="/listings/<%= player._id %>?_method=PUT" method="POST">
+        <!-- Basic Information Section -->
+        <div class="form-row" style="margin-bottom: 2rem;">
+          <div class="form-group">
+            <label for="name" class="form-label">اسم اللاعب <span style="color: #ef4444;">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" value="<%= player.name %>" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="category" class="form-label">الفئة <span style="color: #ef4444;">*</span></label>
+            <select class="form-control" id="category" name="category" required>
+              <option value="under14" <%= player.category === 'under14' ? 'selected' : '' %>>تجمع (Under 14)</option>
+              <option value="under16" <%= player.category === 'under16' ? 'selected' : '' %>>أشبال (Under 16)</option>
+              <option value="under18" <%= player.category === 'under18' ? 'selected' : '' %>>ناشئين (Under 18)</option>
+              <option value="under20" <%= player.category === 'under20' ? 'selected' : '' %>>تحت 20 سنة (Under 20)</option>
+              <option value="man" <%= player.category === 'man' ? 'selected' : '' %>>الرجال</option>
+            </select>
+          </div>
         </div>
-        <div class="card-body">
-          <form action="/listings/<%= player._id %>?_method=PUT" method="POST">
-            <!-- Basic Information Section -->
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="name" class="form-label">اسم اللاعب <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="name" name="name" value="<%= player.name %>" required>
-                </div>
-                
-                <div class="mb-3">
-                  <label for="category" class="form-label">الفئة <span class="text-danger">*</span></label>
-                  <select class="form-select" id="category" name="category" required>
-                    <option value="under14" <%= player.category === 'under14' ? 'selected' : '' %>>تجمع (Under 14)</option>
-                    <option value="under16" <%= player.category === 'under16' ? 'selected' : '' %>>أشبال (Under 16)</option>
-                    <option value="under18" <%= player.category === 'under18' ? 'selected' : '' %>>ناشئين (Under 18)</option>
-                    <option value="under20" <%= player.category === 'under20' ? 'selected' : '' %>>تحت 20 سنة (Under 20)</option>
-                    <option value="man" <%= player.category === 'man' ? 'selected' : '' %>>الرجال</option>
-                  </select>
-                </div>
-                
-                <div class="mb-3">
-                  <label for="shirtNumber" class="form-label">رقم القميص</label>
-                  <input type="number" class="form-control" id="shirtNumber" name="shirtNumber" 
-                         min="1" max="99" value="<%= player.shirtNumber %>">
-                </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="height" class="form-label">الطول (سم)</label>
-                  <input type="number" class="form-control" id="height" name="height" 
-                         min="100.00" max="250.00" value="<%= player.height %>">
-                </div>
-                
-                <div class="mb-3">
-                  <label for="weight" class="form-label">الوزن (كجم)</label>
-                  <input type="number" class="form-control" id="weight" name="weight" 
-                         min="30" max="150" value="<%= player.weight %>">
-                </div>
-                
-                <div class="mb-3">
-                  <label for="phoneNumber" class="form-label">رقم الهاتف</label>
-                  <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
-                         value="<%= player.phoneNumber %>" pattern="[0-9]{8}">
-                  <small class="text-muted">يجب أن يحتوي على 10-15 رقمًا</small>
-                </div>
-              </div>
-            </div>
+
+        <div class="form-row" style="margin-bottom: 2rem;">
+          <div class="form-group">
+            <label for="shirtNumber" class="form-label">رقم القميص</label>
+            <input type="number" class="form-control" id="shirtNumber" name="shirtNumber" 
+                   min="1" max="99" value="<%= player.shirtNumber %>">
+          </div>
+
+          <div class="form-group">
+            <label for="height" class="form-label">الطول (سم)</label>
+            <input type="number" class="form-control" id="height" name="height" 
+                   min="100.00" max="250.00" value="<%= player.height %>">
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 2rem;">
+          <div class="form-group">
+            <label for="weight" class="form-label">الوزن (كجم)</label>
+            <input type="number" class="form-control" id="weight" name="weight" 
+                   min="30" max="150" value="<%= player.weight %>">
+          </div>
+
+          <div class="form-group">
+            <label for="phoneNumber" class="form-label">رقم الهاتف</label>
+            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
+                   value="<%= player.phoneNumber %>">
+          </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
+          <a href="/listings/profile/<%= player._id %>" class="btn btn-ghost">
+            إلغاء
+          </a>
+          <button type="submit" class="btn btn-primary">
+            حفظ التعديلات
+          </button>
+          <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" style="display: inline;">
+            <button type="submit" class="btn" style="background: #ef4444; color: white;" 
+              onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')">
+              حذف اللاعب
+            </button>
+          </form>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
             
             <!-- Sports Tests Section -->
             <div class="mb-4">

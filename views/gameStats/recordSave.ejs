@@ -1,0 +1,89 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">تسجيل تصدي - <%= gameStats.matchName %></h4>
+        </div>
+        <div class="card-body">
+          <form action="/game-stats/save/<%= gameStats._id %>" method="POST">
+            <div class="mb-3">
+              <label for="zone" class="form-label">منطقة الرمية <span class="text-danger">*</span></label>
+              <select class="form-select" id="zone" name="zone" required>
+                <option value="">اختر المنطقة</option>
+                <option value="left_wing">من الجناح الأيسر</option>
+                <option value="right_wing">من الجناح الأيمن</option>
+                <option value="center">من الوسط</option>
+                <option value="7m_line">من خط السبعة أمتار</option>
+                <option value="9m_line">من خط التسعة أمتار</option>
+                <option value="back">من الخلف</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="type" class="form-label">نوع التصدي <span class="text-danger">*</span></label>
+              <select class="form-select" id="type" name="type" required>
+                <option value="">اختر نوع التصدي</option>
+                <option value="regular_save">تصدي عادي</option>
+                <option value="diving_save">تصدي بالقفز</option>
+                <option value="penalty_save">تصدي عقوبة</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="time" class="form-label">وقت التصدي (الدقيقة)</label>
+              <input type="text" class="form-control" id="time" name="time" placeholder="مثال: 20:15">
+            </div>
+
+            <div class="mb-3">
+              <label for="result" class="form-label">ملاحظات إضافية</label>
+              <textarea class="form-control" id="result" name="result" rows="2" placeholder="أضف أي ملاحظات عن التصدي"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-between">
+              <a href="/game-stats/edit/<%= gameStats._id %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> العودة
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> حفظ التصدي
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Saves -->
+      <% if (gameStats.saveDetails && gameStats.saveDetails.length > 0) { %>
+        <div class="card mt-4">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">التصديات المسجلة</h5>
+          </div>
+          <div class="card-body">
+            <div class="list-group">
+              <% gameStats.saveDetails.forEach((save, index) => { %>
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1">
+                        <span class="badge bg-primary">
+                          <%= save.type === 'regular_save' ? 'تصدي عادي' : save.type === 'diving_save' ? 'تصدي بالقفز' : 'تصدي عقوبة' %>
+                        </span>
+                      </h6>
+                      <p class="mb-0 text-muted"><%= save.zone ? 'من: ' + save.zone : '' %></p>
+                      <% if (save.time) { %>
+                        <p class="mb-0 text-muted">الوقت: <%= save.time %></p>
+                      <% } %>
+                      <% if (save.result) { %>
+                        <p class="mb-0"><small><%= save.result %></small></p>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

@@ -11,9 +11,20 @@ const multer = require('multer');
 
 // Database connection
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MONGODB_URI)
-mongoose.connection.on('connected', () => {
-  console.log(`Connected to MongoDB ${mongoose.connection.name} 🙃.`)
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+      console.log(`Connected to MongoDB ${mongoose.connection.name} 🙃.`)
+    })
+    .catch(err => {
+      console.warn('MongoDB connection failed, continuing without DB:', err.message)
+    })
+} else {
+  console.warn('MONGODB_URI not set; running without MongoDB.')
+}
+
+process.on('unhandledRejection', (reason) => {
+  console.warn('Unhandled Rejection:', reason && reason.message ? reason.message : reason)
 })
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -50,19 +61,27 @@ app.use(express.json())
 app.use(methodOverride('_method'))
 app.use(morgan('dev'))
 app.set('trust proxy', 1)
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'default_secret', 
+let sessionStore = null;
+try {
+  if (process.env.MONGODB_URI) {
+    sessionStore = MongoStore.create({ mongoUrl: process.env.MONGODB_URI });
+  }
+} catch (err) {
+  console.warn('connect-mongo init failed, falling back to in-memory session store:', err.message);
+}
+
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET || 'default_secret',
   resave: false,
   saveUninitialized: true,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-  }),
-  cookie: { 
-    maxAge: 1000 * 60 * 60 * 24, 
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' 
+    secure: process.env.NODE_ENV === 'production'
   }
-}));
+};
+if (sessionStore) sessionOptions.store = sessionStore;
+app.use(session(sessionOptions));
 app.use(flash())
 app.use(expressLayouts)
 app.set('layout', 'layouts/main')

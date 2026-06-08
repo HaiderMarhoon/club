@@ -1,0 +1,97 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">تسجيل مباراة جديدة - <%= player.name %></h3>
+        </div>
+        <div class="card-body">
+          <form action="/game-stats/record/<%= player._id %>" method="POST">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="matchDate" class="form-label">تاريخ المباراة <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="matchDate" name="matchDate" required>
+              </div>
+              <div class="col-md-6">
+                <label for="matchName" class="form-label">اسم المباراة <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="matchName" name="matchName" placeholder="مثال: دوري الفئة العمرية" required>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="opponent" class="form-label">الفريق الخصم</label>
+                <input type="text" class="form-control" id="opponent" name="opponent" placeholder="أدخل اسم الفريق الخصم">
+              </div>
+              <div class="col-md-6">
+                <label for="position" class="form-label">الموضع <span class="text-danger">*</span></label>
+                <select class="form-select" id="position" name="position" required>
+                  <option value="player">لاعب عادي</option>
+                  <option value="goalkeeper">حارس المرمى</option>
+                </select>
+              </div>
+            </div>
+
+            <hr>
+            <h5 class="mb-3">الإحصائيات الهجومية</h5>
+
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label for="goals" class="form-label">الأهداف</label>
+                <input type="number" class="form-control" id="goals" name="goals" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="shotsAttempted" class="form-label">المحاولات</label>
+                <input type="number" class="form-control" id="shotsAttempted" name="shotsAttempted" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="passes" class="form-label">التمريرات</label>
+                <input type="number" class="form-control" id="passes" name="passes" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="turnovers" class="form-label">الخسائر</label>
+                <input type="number" class="form-control" id="turnovers" name="turnovers" min="0" value="0">
+              </div>
+            </div>
+
+            <hr>
+            <h5 class="mb-3">الإحصائيات الدفاعية</h5>
+
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label for="saves" class="form-label">التصديات</label>
+                <input type="number" class="form-control" id="saves" name="saves" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="goalsAgainst" class="form-label">الأهداف التي استقبلها</label>
+                <input type="number" class="form-control" id="goalsAgainst" name="goalsAgainst" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="minutesPlayed" class="form-label">الدقائق المشاركة</label>
+                <input type="number" class="form-control" id="minutesPlayed" name="minutesPlayed" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label for="rating" class="form-label">التقييم (1-10)</label>
+                <input type="number" class="form-control" id="rating" name="rating" min="1" max="10">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">ملاحظات</label>
+              <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="أضف أي ملاحظات عن أداء اللاعب"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-between">
+              <a href="/game-stats/player/<%= player._id %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> العودة
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> حفظ المباراة
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -81,6 +81,9 @@
               <a href="/attendance/player/<%= player._id %>" class="btn btn-info">
                 <i class="fas fa-history me-1"></i> سجل الحضور الكامل
               </a>
+              <a href="/game-stats/player/<%= player._id %>" class="btn btn-success">
+                <i class="fas fa-chart-bar me-1"></i> إحصائيات المباريات
+              </a>
               <form action="/listings/<%= player._id %>?_method=DELETE" method="POST" class="d-grid">
                 <button type="submit" class="btn btn-danger" 
                   onclick="return confirm('هل أنت متأكد من حذف هذا اللاعب؟')">

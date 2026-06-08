@@ -2,6 +2,16 @@
 
 <div class="container py-5" dir="rtl">
   <h1 class="text-center mb-5">قائمة اللاعبين المسجلين</h1>
+  <% if (messages && messages.error) { %>
+    <% messages.error.forEach(function(msg){ %>
+      <div class="alert alert-danger"><%= msg %></div>
+    <% }) %>
+  <% } %>
+  <% if (messages && messages.success) { %>
+    <% messages.success.forEach(function(msg){ %>
+      <div class="alert alert-success"><%= msg %></div>
+    <% }) %>
+  <% } %>
   
   <% if (users.length > 0) { %>
     <div class="table-responsive">
@@ -33,6 +43,9 @@
   <div class="text-center mt-4">
     <a href="/admin/create-player-account" class="btn btn-primary">
       إنشاء حساب جديد
+    </a>
+    <a href="/admin/add-admin" class="btn btn-secondary ms-2">
+      إضافة مسؤول
     </a>
   </div>
 </div>

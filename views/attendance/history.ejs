@@ -1,58 +1,55 @@
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>سجل الحضور - <%= player.name %></h2>
-    <% if (user && user.isAdmin) { %>
-    <a href="/listings/<%= player.category %>" class="btn btn-outline-primary">العودة للقائمة</a>
-    <%}%>
-  </div>
-
-  <% if (records.length > 0) { %>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead class="table-dark">
-          <tr>
-            <th>التاريخ</th>
-            <th>الحالة</th>
-            <th>ملاحظات</th>
-            <th>الإجراءات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% records.forEach(record => { %>
-            <tr>
-              <td><%= record.date.toLocaleDateString('ar-EG') %></td>
-              <td>
-                <% if (record.status === 'present') { %>
-                  <span class="badge bg-success">حاضر</span>
-                <% } else if (record.status === 'late') { %>
-                  <span class="badge bg-warning text-dark">متأخر</span>
-                <% } else { %>
-                  <span class="badge bg-danger">غائب</span>
-                <% } %>
-              </td>
-              <td><%= record.comment || '---' %></td>
-              
-              <td>
-                <% if (user && user.isAdmin ) { %>
-                <a href="/attendance/<%= record._id %>/edit" class="btn btn-sm btn-dark" title="تعديل الحضور">
-                  <i class="fas fa-edit"></i>
-                  <span class="d-none d-sm-inline">تعديل</span>
-                </a>
-                <form action="/attendance/<%= record._id %>?_method=DELETE" method="POST" class="d-inline">
-                  <button type="submit" class="btn btn-sm btn-danger" 
-                    onclick="return confirm('هل أنت متأكد من حذف سجل الحضور هذا؟')" title="حذف">
-                    <i class="fas fa-trash-alt"></i>
-                    <span class="d-none d-sm-inline">حذف</span>
-                  </button>
-                </form>
-                <% } %>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
+<div class="container">
+  <div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.3rem; margin: 0;">سجل الحضور - <%= player.name %></h2>
+      <% if (user && user.isAdmin) { %>
+      <a href="/listings/<%= player.category %>" class="btn btn-primary" style="margin: 0;">العودة للقائمة</a>
+      <%}%>
     </div>
-  <% } else { %>
-    <div class="alert alert-info">لا يوجد سجل حضور لهذا اللاعب بعد</div>
-  <% } %>
+    <div class="card-body">
+      <% if (records.length > 0) { %>
+        <div style="overflow-x: auto;">
+          <table class="table" style="min-width: 600px;">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% records.forEach(record => { %>
+                <tr>
+                  <td><%= record.date.toLocaleDateString('ar-EG') %></td>
+                  <td>
+                    <% if (record.status === 'present') { %>
+                      <span class="badge success">حاضر</span>
+                    <% } else if (record.status === 'late') { %>
+                      <span class="badge warning">متأخر</span>
+                    <% } else { %>
+                      <span class="badge danger">غائب</span>
+                    <% } %>
+                  </td>
+                  <td><%= record.comment || '---' %></td>
+                  
+                  <td style="display: flex; gap: 0.5rem;">
+                    <% if (user && user.isAdmin ) { %>
+                    <a href="/attendance/<%= record._id %>/edit" class="btn" style="background: #0ea5e9; color: white; padding: 6px 10px; font-size: 0.85rem;" title="تعديل الحضور">تعديل</a>
+                    <form action="/attendance/<%= record._id %>?_method=DELETE" method="POST" style="display: inline;">
+                      <button type="submit" class="btn" style="background: #ef4444; color: white; padding: 6px 10px; font-size: 0.85rem;" 
+                        onclick="return confirm('هل أنت متأكد من حذف سجل الحضور هذا؟')" title="حذف">حذف</button>
+                    </form>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div style="background: #eef2ff; padding: 1rem; border-radius: 8px; color: #3730a3; text-align: center;">لا يوجد سجل حضور لهذا اللاعب بعد</div>
+      <% } %>
+    </div>
+  </div>
 </div>

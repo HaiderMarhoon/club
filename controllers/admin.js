@@ -6,7 +6,7 @@ const User = require('../models/user');
 const isAdmin = require('../middleware/is-admin');
 
 // Add this before your other routes
-router.get('/players', isAdmin, async (req, res) => {
+router.get('/players', isAdmin, async (req, res, next) => {
     try {
         const players = await Player.find({});
         const users = await User.find({ isPlayer: { $exists: true } }).populate('isPlayer');
@@ -14,8 +14,53 @@ router.get('/players', isAdmin, async (req, res) => {
         res.render('admin/players-list', {
             title: 'قائمة اللاعبين',
             players,
-            users
+            users,
+            messages: req.flash()
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// GET route to render form to add another admin (admin only)
+router.get('/add-admin', isAdmin, async (req, res, next) => {
+    try {
+        res.render('admin/addAdmin', {
+            title: 'إضافة مسؤول',
+            messages: req.flash()
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// POST route to create a new admin user (admin only)
+router.post('/add-admin', isAdmin, async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            req.flash('error', 'جميع الحقول مطلوبة');
+            return res.status(400).render('admin/addAdmin', { formData: req.body, title: 'إضافة مسؤول', messages: req.flash() });
+        }
+
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            req.flash('error', 'اسم المستخدم موجود بالفعل');
+            return res.status(400).render('admin/addAdmin', { formData: req.body, title: 'إضافة مسؤول', messages: req.flash() });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const user = new User({
+            username,
+            password: hashedPassword,
+            isAdmin: true
+        });
+
+        await user.save();
+
+        req.flash('success', 'تم إضافة المسؤول بنجاح');
+        res.redirect('/admin/players');
     } catch (err) {
         next(err);
     }

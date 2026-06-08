@@ -1,19 +1,19 @@
 
-
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h2 class="mb-4">إضافة لاعب جديد</h2>
-      
+<div class="container" style="max-width: 500px;">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: 1.3rem; margin: 0;">إضافة لاعب جديد</h2>
+    </div>
+    <div class="card-body">
       <form action="/listings" method="POST">
-        <div class="mb-3">
+        <div class="form-group">
           <label for="name" class="form-label">اسم اللاعب</label>
           <input type="text" class="form-control" id="name" name="name" required>
         </div>
         
-        <div class="mb-3">
+        <div class="form-group">
           <label for="category" class="form-label">الفئة</label>
-          <select class="form-select" id="category" name="category" required>
+          <select class="form-control" id="category" name="category" required>
             <option value="" selected disabled>اختر الفئة</option>
             <option value="under14">تجمع (Under 14)</option>
             <option value="under16">أشبال (Under 16)</option>
@@ -23,9 +23,9 @@
           </select>
         </div>
         
-        <div class="d-grid gap-2">
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
           <button type="submit" class="btn btn-primary">حفظ اللاعب</button>
-          <a href="/listings" class="btn btn-outline-secondary">إلغاء</a>
+          <a href="/listings" class="btn btn-ghost">إلغاء</a>
         </div>
       </form>
     </div>

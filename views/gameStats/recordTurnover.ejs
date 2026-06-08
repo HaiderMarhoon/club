@@ -1,0 +1,86 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0">تسجيل خسارة كرة - <%= gameStats.matchName %></h4>
+        </div>
+        <div class="card-body">
+          <form action="/game-stats/turnover/<%= gameStats._id %>" method="POST">
+            <div class="mb-3">
+              <label for="type" class="form-label">نوع الخسارة <span class="text-danger">*</span></label>
+              <select class="form-select" id="type" name="type" required>
+                <option value="">اختر نوع الخسارة</option>
+                <option value="bad_pass">تمرية سيئة</option>
+                <option value="charging">شحن غير قانوني</option>
+                <option value="ball_out">الكرة خارج الملعب</option>
+                <option value="double_dribble">مراوغة مزدوجة</option>
+                <option value="traveling">خطوات إضافية</option>
+                <option value="forced_error">خطأ مجبر</option>
+                <option value="interception">اعتراض</option>
+                <option value="other">أخرى</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="time" class="form-label">وقت الخسارة (الدقيقة)</label>
+              <input type="text" class="form-control" id="time" name="time" placeholder="مثال: 25:45">
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">وصف الخسارة</label>
+              <textarea class="form-control" id="description" name="description" rows="3" placeholder="صف الموقف الذي أدى لخسارة الكرة"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-between">
+              <a href="/game-stats/edit/<%= gameStats._id %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> العودة
+              </a>
+              <button type="submit" class="btn btn-warning">
+                <i class="fas fa-save me-1"></i> حفظ الخسارة
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Turnovers -->
+      <% if (gameStats.turnoverDetails && gameStats.turnoverDetails.length > 0) { %>
+        <div class="card mt-4">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">الخسائر المسجلة</h5>
+          </div>
+          <div class="card-body">
+            <div class="list-group">
+              <% gameStats.turnoverDetails.forEach((turnover, index) => { %>
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1">
+                        <span class="badge bg-warning text-dark">
+                          <%= turnover.type === 'bad_pass' ? 'تمرية سيئة' : 
+                              turnover.type === 'charging' ? 'شحن غير قانوني' : 
+                              turnover.type === 'ball_out' ? 'كرة خارج الملعب' :
+                              turnover.type === 'double_dribble' ? 'مراوغة مزدوجة' :
+                              turnover.type === 'traveling' ? 'خطوات إضافية' :
+                              turnover.type === 'forced_error' ? 'خطأ مجبر' :
+                              turnover.type === 'interception' ? 'اعتراض' : 'أخرى' %>
+                        </span>
+                      </h6>
+                      <% if (turnover.time) { %>
+                        <p class="mb-0 text-muted">الوقت: <%= turnover.time %></p>
+                      <% } %>
+                      <% if (turnover.description) { %>
+                        <p class="mb-0"><small><%= turnover.description %></small></p>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

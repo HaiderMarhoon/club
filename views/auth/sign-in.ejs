@@ -1,25 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In</title>
-</head>
-
-<body>
-  <h1>تسجيل الدخول</h1>
-  <form action="/auth/sign-in" method="POST" class="w-50 mx-auto mt-4">
-    <div class="mb-3">
-      <label for="username" class="form-label">الاسم:</label>
-      <input type="text" name="username" id="username" class="form-control" />
+<div class="container" style="max-width: 420px; margin: 4rem auto;">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: 1.3rem; margin: 0;">تسجيل الدخول</h2>
     </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">الباسوورد:</label>
-      <input type="password" name="password" id="password"  class="form-control" />
+    <div class="card-body">
+      <form action="/auth/sign-in" method="POST">
+        <div class="form-group">
+          <label for="username" class="form-label">اسم المستخدم</label>
+          <input type="text" name="username" id="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="password" class="form-label">كلمة المرور</label>
+          <input type="password" name="password" id="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">تسجيل الدخول</button>
+      </form>
+      <p style="text-align: center; margin-top: 1rem; color: #6b7280;">
+        ليس لديك حساب؟ <a href="/auth/sign-up" style="color: #0ea5e9;">إنشاء حساب</a>
+      </p>
     </div>
-    <button type="submit">تسجيل</button>
-  </form>
-</body>
-
-</html>
+  </div>
+</div>

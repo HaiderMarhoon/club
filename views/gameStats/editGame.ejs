@@ -1,0 +1,121 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">تعديل إحصائيات المباراة - <%= gameStats.matchName %></h4>
+        </div>
+        <div class="card-body">
+          <form action="/game-stats/edit/<%= gameStats._id %>" method="POST">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="matchDate" class="form-label">تاريخ المباراة</label>
+                <input type="date" class="form-control" id="matchDate" name="matchDate" 
+                       value="<%= gameStats.matchDate.toISOString().split('T')[0] %>">
+              </div>
+              <div class="col-md-6">
+                <label for="matchName" class="form-label">اسم المباراة</label>
+                <input type="text" class="form-control" id="matchName" name="matchName" 
+                       value="<%= gameStats.matchName %>">
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="opponent" class="form-label">الفريق الخصم</label>
+                <input type="text" class="form-control" id="opponent" name="opponent" 
+                       value="<%= gameStats.opponent || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="position" class="form-label">الموضع</label>
+                <select class="form-select" id="position" name="position">
+                  <option value="player" <%= gameStats.position === 'player' ? 'selected' : '' %>>لاعب عادي</option>
+                  <option value="goalkeeper" <%= gameStats.position === 'goalkeeper' ? 'selected' : '' %>>حارس المرمى</option>
+                </select>
+              </div>
+            </div>
+
+            <hr>
+            <h5 class="mb-3">الإحصائيات</h5>
+
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="minutesPlayed" class="form-label">الدقائق المشاركة</label>
+                <input type="number" class="form-control" id="minutesPlayed" name="minutesPlayed" 
+                       min="0" value="<%= gameStats.minutesPlayed %>">
+              </div>
+              <div class="col-md-4">
+                <label for="rating" class="form-label">التقييم (1-10)</label>
+                <input type="number" class="form-control" id="rating" name="rating" 
+                       min="1" max="10" value="<%= gameStats.rating || '' %>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">عدد الأهداف</label>
+                <input type="text" class="form-control" disabled value="<%= gameStats.goals %>">
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">المحاولات</label>
+                <input type="text" class="form-control" disabled value="<%= gameStats.shotsAttempted %>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">التمريرات</label>
+                <input type="text" class="form-control" disabled value="<%= gameStats.passes %>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">التصديات</label>
+                <input type="text" class="form-control" disabled value="<%= gameStats.saves %>">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">ملاحظات</label>
+              <textarea class="form-control" id="notes" name="notes" rows="3"><%= gameStats.notes || '' %></textarea>
+            </div>
+
+            <hr>
+            <h5 class="mb-3">إضافة التفاصيل</h5>
+            <div class="row mb-3 gap-2">
+              <div class="col-auto">
+                <a href="/game-stats/shot/<%= gameStats._id %>" class="btn btn-info btn-sm">
+                  <i class="fas fa-plus me-1"></i> إضافة رمية
+                </a>
+              </div>
+              <% if (gameStats.position === 'goalkeeper') { %>
+                <div class="col-auto">
+                  <a href="/game-stats/save/<%= gameStats._id %>" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> إضافة تصدي
+                  </a>
+                </div>
+              <% } %>
+              <div class="col-auto">
+                <a href="/game-stats/turnover/<%= gameStats._id %>" class="btn btn-warning btn-sm">
+                  <i class="fas fa-plus me-1"></i> إضافة خسارة
+                </a>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-between">
+              <a href="/game-stats/player/<%= gameStats.player %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> العودة
+              </a>
+              <div>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-1"></i> حفظ التعديلات
+                </button>
+                <form action="/game-stats/<%= gameStats._id %>?_method=DELETE" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-danger" 
+                    onclick="return confirm('هل تريد حذف هذا السجل؟')">
+                    <i class="fas fa-trash me-1"></i> حذف
+                  </button>
+                </form>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

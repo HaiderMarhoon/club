@@ -1,0 +1,178 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>إحصائيات المباريات - <%= player.name %></h2>
+    <div>
+      <a href="/game-stats/record/<%= player._id %>" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> تسجيل مباراة جديدة
+      </a>
+      <a href="/listings/profile/<%= player._id %>" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> العودة
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="row mb-4">
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">إجمالي المباريات</h6>
+          <h3><%= stats.length %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">إجمالي الأهداف</h6>
+          <h3 style="color: #28a745;"><%= totals.goals %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">إجمالي المحاولات</h6>
+          <h3><%= totals.shots %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">نسبة التسديد</h6>
+          <h3><%= totals.shots > 0 ? Math.round((totals.goals / totals.shots) * 100) : 0 %>%</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">التمريرات</h6>
+          <h3><%= totals.passes %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">الخسائر</h6>
+          <h3 style="color: #dc3545;"><%= totals.turnovers %></h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GK Stats -->
+  <% if (stats.some(s => s.position === 'goalkeeper')) { %>
+    <div class="row mb-4">
+      <div class="col-md-2 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h6 class="card-title">إجمالي التصديات</h6>
+            <h3 style="color: #007bff;"><%= totals.saves %></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h6 class="card-title">الأهداف التي استقبلها</h6>
+            <h3 style="color: #dc3545;"><%= totals.goalsAgainst %></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h6 class="card-title">نسبة التصدي</h6>
+            <h3><%= totals.saves + totals.goalsAgainst > 0 ? Math.round((totals.saves / (totals.saves + totals.goalsAgainst)) * 100) : 0 %>%</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Match Records Table -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">سجل المباريات</h5>
+    </div>
+    <div class="card-body">
+      <% if (stats.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>اسم المباراة</th>
+                <th>الخصم</th>
+                <th>التاريخ</th>
+                <th>الأهداف</th>
+                <th>المحاولات</th>
+                <th>التمريرات</th>
+                <th>التصديات</th>
+                <th>الخسائر</th>
+                <th>التقييم</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% stats.forEach(stat => { %>
+                <tr>
+                  <td><strong><%= stat.matchName %></strong></td>
+                  <td><%= stat.opponent || '-' %></td>
+                  <td><%= new Date(stat.matchDate).toLocaleDateString('ar-EG') %></td>
+                  <td>
+                    <span class="badge bg-success"><%= stat.goals %></span>
+                  </td>
+                  <td><%= stat.shotsAttempted %></td>
+                  <td><%= stat.passes %></td>
+                  <td>
+                    <span class="badge bg-info"><%= stat.saves %></span>
+                  </td>
+                  <td>
+                    <span class="badge bg-danger"><%= stat.turnovers %></span>
+                  </td>
+                  <td>
+                    <% if (stat.rating) { %>
+                      <span class="badge bg-warning text-dark"><%= stat.rating %>/10</span>
+                    <% } else { %>
+                      -
+                    <% } %>
+                  </td>
+                  <td>
+                    <a href="/game-stats/edit/<%= stat._id %>" class="btn btn-sm btn-warning" title="تعديل">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="/game-stats/shot/<%= stat._id %>" class="btn btn-sm btn-info" title="إضافة رمية">
+                      <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <% if (stat.position === 'goalkeeper') { %>
+                      <a href="/game-stats/save/<%= stat._id %>" class="btn btn-sm btn-primary" title="إضافة تصدي">
+                        <i class="fas fa-shield-alt"></i>
+                      </a>
+                    <% } %>
+                    <a href="/game-stats/turnover/<%= stat._id %>" class="btn btn-sm btn-secondary" title="إضافة خسارة">
+                      <i class="fas fa-exchange-alt"></i>
+                    </a>
+                    <form action="/game-stats/<%= stat._id %>?_method=DELETE" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger" 
+                        onclick="return confirm('هل تريد حذف هذا السجل؟')" title="حذف">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle me-2"></i>
+          لا توجد مباريات مسجلة لهذا اللاعب
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

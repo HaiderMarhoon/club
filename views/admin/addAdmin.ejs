@@ -1,0 +1,32 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="card-title text-center">إضافة مسؤول جديد</h3>
+        </div>
+        <div class="card-body">
+          <% if (messages && messages.error) { %>
+            <div class="alert alert-danger"><%= messages.error %></div>
+          <% } %>
+
+          <form action="/admin/add-admin" method="POST" dir="rtl">
+            <div class="mb-3">
+              <label for="username" class="form-label">اسم المستخدم</label>
+              <input type="text" class="form-control" id="username" name="username" value="<%= (typeof formData !== 'undefined' && formData.username) ? formData.username : '' %>" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">كلمة المرور</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">إضافة المسؤول</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
