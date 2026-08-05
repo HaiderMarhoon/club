@@ -1,12 +1,12 @@
-const Player = require('../models/players');
+const { db } = require('../config/firebase-admin');
 
 module.exports = async function (req, res, next) {
-  const playerId = req.session.user?.playerId || req.session.user?.isPlayer;
+  const playerId = req.user?.isPlayer;
 
   if (playerId) {
     try {
-      const player = await Player.findById(playerId).populate('attendances');
-      res.locals.currentPlayer = player;
+      const doc = await db.collection('players').doc(playerId).get();
+      res.locals.currentPlayer = doc.exists ? { _id: doc.id, id: doc.id, ...doc.data() } : null;
     } catch (err) {
       console.error("Error loading player:", err);
       res.locals.currentPlayer = null;

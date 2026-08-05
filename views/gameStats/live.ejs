@@ -1,0 +1,350 @@
+<div class="container mt-4" id="live-app" data-player-id="<%= player._id %>" data-player-name="<%= player.name %>" data-player-category="<%= player.category %>">
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="mb-0">إحصائيات مباشرة — <%= player.name %></h2>
+    <div>
+      <a href="/listings/profile/<%= player._id %>" class="btn btn-secondary btn-sm">العودة للملف</a>
+    </div>
+  </div>
+
+  <!-- Match context -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">اسم المباراة/التمرين</label>
+          <input type="text" id="matchName" class="form-control" placeholder="مثال: مباراة ودية">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">الفريق الخصم</label>
+          <input type="text" id="opponent" class="form-control" placeholder="اسم الخصم (اختياري)">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">الشوط</label>
+          <select id="period" class="form-select">
+            <option value="1">الشوط الأول</option>
+            <option value="2">الشوط الثاني</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">الدقيقة</label>
+          <input type="text" id="matchTime" class="form-control" placeholder="مثال: 12">
+        </div>
+        <div class="col-md-2">
+          <div class="btn-group w-100" role="group">
+            <button type="button" class="btn btn-outline-primary active" id="modeAttackBtn" onclick="setMode('attack')">هجوم</button>
+            <button type="button" class="btn btn-outline-primary" id="modeGkBtn" onclick="setMode('gk')">حراسة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Court: pick where the shot came from -->
+    <div class="col-lg-6" id="courtCol">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">1. اضغط على مكان التصويب في الملعب</div>
+        <div class="card-body text-center">
+          <svg id="courtSvg" viewBox="0 0 300 220" style="width:100%;max-width:420px;background:#2e7d32;border-radius:8px;cursor:crosshair;">
+            <rect x="2" y="2" width="296" height="216" fill="none" stroke="#fff" stroke-width="2"/>
+            <rect x="90" y="2" width="120" height="60" fill="none" stroke="#fff" stroke-width="2"/>
+            <path d="M 60 2 A 90 90 0 0 0 60 2" fill="none"/>
+            <path d="M 20 2 Q 150 100 280 2" fill="none" stroke="#fff" stroke-width="2"/>
+            <path d="M 5 2 Q 150 130 295 2" fill="none" stroke="#ffffffaa" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <rect x="130" y="-6" width="40" height="14" fill="#fff" stroke="#333" stroke-width="2"/>
+            <g id="courtDots"></g>
+          </svg>
+          <div class="mt-2 small text-muted">9م: خط متقطع &nbsp;|&nbsp; 6م: خط ثابت &nbsp;|&nbsp; المستطيل: منطقة الحارس</div>
+          <div class="mt-1"><span class="badge bg-secondary" id="courtCoordBadge">لم يتم التحديد بعد</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal: pick target zone -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-dark text-white" id="goalStepLabel">2. اضغط على مكان التصويب في المرمى</div>
+        <div class="card-body text-center">
+          <svg id="goalSvg" viewBox="0 0 210 150" style="width:100%;max-width:380px;background:#f1f3f5;border-radius:8px;cursor:crosshair;">
+            <rect x="5" y="5" width="200" height="140" fill="#e9ecef" stroke="#212529" stroke-width="4"/>
+            <line x1="5" y1="51.6" x2="205" y2="51.6" stroke="#adb5bd" stroke-width="1"/>
+            <line x1="5" y1="98.3" x2="205" y2="98.3" stroke="#adb5bd" stroke-width="1"/>
+            <line x1="71.6" y1="5" x2="71.6" y2="145" stroke="#adb5bd" stroke-width="1"/>
+            <line x1="138.3" y1="5" x2="138.3" y2="145" stroke="#adb5bd" stroke-width="1"/>
+            <g id="goalDots"></g>
+          </svg>
+          <div class="mt-2">
+            <span class="badge bg-secondary" id="goalZoneBadge">لم يتم التحديد بعد</span>
+            <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="setGoalZone('outside')">خارج المرمى</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attack controls -->
+  <div class="card mt-3" id="attackControls">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label">نوع التسديدة</label>
+          <select id="shotType" class="form-select">
+            <option value="shot6m">6 متر</option>
+            <option value="shot9m">9 متر</option>
+            <option value="shot7m">7 متر (ضربة جزاء)</option>
+            <option value="shotWing">جناح</option>
+            <option value="shotFastBreak">هجمة مرتدة</option>
+            <option value="shotOrganized">هجمة منظمة</option>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">النتيجة</label>
+          <div class="btn-group w-100">
+            <button class="btn btn-success" onclick="submitShot('goal')">⚽ هدف</button>
+            <button class="btn btn-danger" onclick="submitShot('miss')">✗ تصويبة خاطئة</button>
+            <button class="btn btn-warning" onclick="submitShot('blocked')">🛡 مصدودة/محظورة</button>
+            <button class="btn btn-info" onclick="submitShot('save')">🧤 تصدى الحارس</button>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <button class="btn btn-outline-secondary btn-sm" onclick="submitTurnover()">تسجيل فقدان كرة (بدون موقع)</button>
+    </div>
+  </div>
+
+  <!-- GK controls -->
+  <div class="card mt-3 d-none" id="gkControls">
+    <div class="card-body">
+      <p class="mb-2">حدد في المرمى (أعلاه) المكان الذي جاء منه التصويب، ثم اختر النتيجة:</p>
+      <div class="btn-group w-100">
+        <button class="btn btn-success" onclick="submitGk('save')">🧤 تصدي ناجح</button>
+        <button class="btn btn-danger" onclick="submitGk('goal')">⚽ هدف مستقبل</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="liveMsg" class="mt-3"></div>
+
+  <!-- Live stats -->
+  <div class="row mt-4 g-3">
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">أهداف</div><h4 id="statGoals">0</h4></div></div></div>
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">محاولات</div><h4 id="statShots">0</h4></div></div></div>
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">نسبة التسديد</div><h4 id="statAccuracy">0%</h4></div></div></div>
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">تصديات</div><h4 id="statSaves">0</h4></div></div></div>
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">نسبة التصدي</div><h4 id="statSaveRate">0%</h4></div></div></div>
+    <div class="col-md-2 col-6"><div class="card text-center"><div class="card-body p-2"><div class="small text-muted">فقدان كرة</div><h4 id="statTurnovers">0</h4></div></div></div>
+  </div>
+
+  <!-- Recent events -->
+  <div class="card mt-3">
+    <div class="card-header">آخر الأحداث</div>
+    <ul class="list-group list-group-flush" id="recentEvents"></ul>
+  </div>
+</div>
+
+<script>
+(function () {
+  const app = document.getElementById('live-app');
+  const playerId = app.dataset.playerId;
+  const playerName = app.dataset.playerName;
+  const playerCategory = app.dataset.playerCategory;
+
+  let mode = 'attack'; // 'attack' | 'gk'
+  let courtPoint = null; // {x, y} percentages
+  let goalZone = null;   // string
+
+  const COLORS = { goal: '#2ecc71', miss: '#e74c3c', blocked: '#f1c40f', save: '#3498db' };
+
+  // Restore match context between events
+  ['matchName', 'opponent'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = sessionStorage.getItem('live_' + id) || '';
+    el.addEventListener('input', () => sessionStorage.setItem('live_' + id, el.value));
+  });
+
+  window.setMode = function (m) {
+    mode = m;
+    document.getElementById('modeAttackBtn').classList.toggle('active', m === 'attack');
+    document.getElementById('modeGkBtn').classList.toggle('active', m === 'gk');
+    document.getElementById('courtCol').style.display = m === 'attack' ? '' : 'none';
+    document.getElementById('attackControls').classList.toggle('d-none', m !== 'attack');
+    document.getElementById('gkControls').classList.toggle('d-none', m !== 'gk');
+    document.getElementById('goalStepLabel').textContent = m === 'attack'
+      ? '2. اضغط على مكان التصويب في المرمى'
+      : 'حدد مكان التصويب الذي واجهه الحارس في المرمى';
+  };
+
+  // ---- Court click ----
+  const courtSvg = document.getElementById('courtSvg');
+  courtSvg.addEventListener('click', e => {
+    const pt = svgPoint(courtSvg, e);
+    courtPoint = { x: Math.round(pt.x / 300 * 100), y: Math.round(pt.y / 220 * 100) };
+    document.getElementById('courtCoordBadge').textContent = `تم التحديد (${courtPoint.x}%, ${courtPoint.y}%)`;
+    drawDot('courtDots', pt.x, pt.y, '#fff', true);
+  });
+
+  // ---- Goal click ----
+  const goalSvg = document.getElementById('goalSvg');
+  goalSvg.addEventListener('click', e => {
+    const pt = svgPoint(goalSvg, e);
+    const col = pt.x < 71.6 ? 'left' : pt.x < 138.3 ? 'center' : 'right';
+    const row = pt.y < 51.6 ? 'top' : pt.y < 98.3 ? 'mid' : 'bottom';
+    setGoalZone(`${row}-${col}`);
+  });
+
+  window.setGoalZone = function (zone) {
+    goalZone = zone;
+    document.getElementById('goalZoneBadge').textContent = zone === 'outside' ? 'خارج المرمى' : 'تم التحديد: ' + zone;
+  };
+
+  function svgPoint(svg, evt) {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const x = (evt.clientX - rect.left) / rect.width * vb.width;
+    const y = (evt.clientY - rect.top) / rect.height * vb.height;
+    return { x, y };
+  }
+
+  function drawDot(groupId, x, y, color, isMarker) {
+    const g = document.getElementById(groupId);
+    if (isMarker) {
+      g.querySelectorAll('.marker').forEach(n => n.remove());
+    }
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', isMarker ? 6 : 4);
+    c.setAttribute('fill', color); c.setAttribute('stroke', '#000'); c.setAttribute('stroke-width', '1');
+    if (isMarker) c.classList.add('marker');
+    g.appendChild(c);
+  }
+
+  function plotGoalDot(zone, color) {
+    if (zone === 'outside') return;
+    const [row, col] = zone.split('-');
+    const cx = { left: 35.8, center: 105, right: 174.1 }[col];
+    const cy = { top: 25.8, mid: 75, bottom: 121.6 }[row];
+    if (cx && cy) drawDot('goalDots', cx, cy, color, false);
+  }
+
+  function plotCourtDot(loc, color) {
+    if (!loc) return;
+    const [xp, yp] = loc.split(',').map(Number);
+    if (isNaN(xp) || isNaN(yp)) return;
+    drawDot('courtDots', xp / 100 * 300, yp / 100 * 220, color, false);
+  }
+
+  function matchCtx() {
+    return {
+      matchName: document.getElementById('matchName').value || 'مباراة/تمرين',
+      opponent: document.getElementById('opponent').value,
+      period: document.getElementById('period').value,
+      time: document.getElementById('matchTime').value,
+    };
+  }
+
+  async function postEvent(payload) {
+    const res = await fetch('/game-stats/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'فشل الحفظ');
+    return data;
+  }
+
+  function flashMsg(text, ok) {
+    const box = document.getElementById('liveMsg');
+    box.innerHTML = `<div class="alert ${ok ? 'alert-success' : 'alert-danger'} py-2">${text}</div>`;
+    setTimeout(() => { box.innerHTML = ''; }, 2500);
+  }
+
+  window.submitShot = async function (result) {
+    if (!courtPoint) return flashMsg('حدد أولاً مكان التصويب في الملعب', false);
+    if (!goalZone) return flashMsg('حدد مكان التصويب في المرمى (أو اضغط "خارج المرمى")', false);
+    const ctx = matchCtx();
+    try {
+      await postEvent({
+        playerId, player: playerName, playerCategory,
+        type: document.getElementById('shotType').value,
+        result,
+        shotLocation: `${courtPoint.x},${courtPoint.y}`,
+        goalDirection: goalZone,
+        ...ctx,
+      });
+      plotGoalDot(goalZone, COLORS[result] || '#333');
+      flashMsg('تم تسجيل الحدث بنجاح', true);
+      courtPoint = null; goalZone = null;
+      document.getElementById('courtCoordBadge').textContent = 'لم يتم التحديد بعد';
+      document.getElementById('goalZoneBadge').textContent = 'لم يتم التحديد بعد';
+      document.querySelectorAll('#courtDots .marker').forEach(n => n.remove());
+      refresh();
+    } catch (err) { flashMsg(err.message, false); }
+  };
+
+  window.submitGk = async function (result) {
+    if (!goalZone) return flashMsg('حدد مكان التصويب في المرمى أولاً', false);
+    const ctx = matchCtx();
+    try {
+      await postEvent({
+        playerId, player: playerName, playerCategory,
+        type: 'save', result,
+        goalDirection: goalZone,
+        ...ctx,
+      });
+      plotGoalDot(goalZone, result === 'save' ? COLORS.save : COLORS.miss);
+      flashMsg('تم تسجيل الحدث بنجاح', true);
+      goalZone = null;
+      document.getElementById('goalZoneBadge').textContent = 'لم يتم التحديد بعد';
+      refresh();
+    } catch (err) { flashMsg(err.message, false); }
+  };
+
+  window.submitTurnover = async function () {
+    const ctx = matchCtx();
+    try {
+      await postEvent({ playerId, player: playerName, playerCategory, type: 'turnover', result: '', ...ctx });
+      flashMsg('تم تسجيل فقدان الكرة', true);
+      refresh();
+    } catch (err) { flashMsg(err.message, false); }
+  };
+
+  async function refresh() {
+    try {
+      const res = await fetch(`/game-stats/player/${playerId}`);
+      const data = await res.json();
+      if (!data.success) return;
+      const t = data.totals;
+      document.getElementById('statGoals').textContent = t.goals;
+      document.getElementById('statShots').textContent = t.shotsAttempted;
+      document.getElementById('statAccuracy').textContent = t.goalAccuracy + '%';
+      document.getElementById('statSaves').textContent = t.saves;
+      document.getElementById('statSaveRate').textContent = t.savePercentage + '%';
+      document.getElementById('statTurnovers').textContent = t.turnovers;
+
+      // Repaint shot map from scratch (source of truth = server)
+      document.getElementById('courtDots').innerHTML = '';
+      document.getElementById('goalDots').innerHTML = '';
+      (data.shotEvents || []).forEach(ev => {
+        const color = COLORS[ev.result] || '#7f8c8d';
+        if (ev.shotLocation) plotCourtDot(ev.shotLocation, color);
+        if (ev.goalDirection) plotGoalDot(ev.goalDirection, color);
+      });
+
+      const list = document.getElementById('recentEvents');
+      list.innerHTML = '';
+      (data.shotEvents || []).slice(-8).reverse().forEach(ev => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        const label = { goal: 'هدف', miss: 'خاطئة', blocked: 'مصدودة', save: 'تصدي' }[ev.result] || ev.result || ev.type;
+        li.innerHTML = `<span>${label} — ${ev.matchName || ''}</span><small class="text-muted">ش${ev.period || '-'} / د${ev.time || '-'}</small>`;
+        list.appendChild(li);
+      });
+    } catch (e) { /* silent — will retry on next poll */ }
+  }
+
+  setMode('attack');
+  refresh();
+  setInterval(refresh, 6000); // live polling refresh
+})();
+</script>

@@ -1,37 +1,70 @@
-const express = require('express')
-const router = express.Router()
-const Attendance = require('../models/attendance')
-const Player = require('../models/players')
-const isSignedIn = require('../middleware/is-signed-in')
+const express = require('express');
+const router = express.Router();
+const { db } = require('../config/firebase-admin');
+const requireSignedIn = require('../middleware/require-signed-in');
 
-// View attendance form for a category
-router.get('/:category', isSignedIn, async (req, res) => {
+function getCategoryName(category) {
+  const names = {
+    under14: 'تجمع (Under 14)',
+    under16: 'أشبال (Under 16)',
+    under18: 'ناشئين (Under 18)',
+    under20: 'تحت 20 سنة (Under 20)',
+    man: 'الرجال',
+  };
+  return names[category] || category;
+}
+
+router.get('/players/list', requireSignedIn, async (req, res) => {
+  try {
+    const snap = await db.collection('attendance').get();
+    const playerIds = [...new Set(snap.docs.map(d => d.data().player).filter(Boolean))];
+
+    const players = await Promise.all(
+      playerIds.map(async id => {
+        const doc = await db.collection('players').doc(id).get();
+        if (!doc.exists) return null;
+        const data = doc.data();
+        return { _id: doc.id, name: data.name, category: data.category, shirtNumber: data.shirtNumber || null };
+      })
+    );
+
+    res.json(players.filter(Boolean));
+  } catch (err) {
+    console.error('Error loading attendance player list:', err);
+    res.status(500).json({ success: false, message: 'خطأ في تحميل لاعبي الحضور' });
+  }
+});
+
+router.get('/:category', requireSignedIn, async (req, res) => {
   try {
     const category = req.params.category;
-    const players = await Player.find({ category }).sort({ name: 1 });
+    const playersSnap = await db.collection('players').where('category', '==', category).orderBy('name').get();
+    const players = playersSnap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() }));
 
-    // Define today's date range
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
 
-    // Get today's attendance records
-    const attendanceToday = await Attendance.find({
-      date: { $gte: todayStart, $lte: todayEnd },
-      player: { $in: players.map(p => p._id) }
-    });
+    const playerIds = players.map(p => p.id);
+    let attendanceToday = [];
 
-    // Create playerId to attendanceId mapping
+    // Firestore 'in' queries max out at 30 values, so chunk large rosters
+    for (let i = 0; i < playerIds.length; i += 30) {
+      const chunk = playerIds.slice(i, i + 30);
+      if (!chunk.length) continue;
+      const snap = await db.collection('attendance')
+        .where('player', 'in', chunk)
+        .where('date', '>=', todayStart)
+        .where('date', '<=', todayEnd)
+        .get();
+      attendanceToday.push(...snap.docs.map(d => ({ _id: d.id, ...d.data() })));
+    }
+
     const attendanceMap = {};
-    attendanceToday.forEach(record => {
-      attendanceMap[record.player.toString()] = record._id;
-    });
+    attendanceToday.forEach(record => { attendanceMap[record.player] = record._id; });
 
-    // Prepare players data with attendance info
     const playersWithAttendance = players.map(player => ({
-      ...player.toObject(),
-      attendanceId: attendanceMap[player._id.toString()] || null,
+      ...player,
+      attendanceId: attendanceMap[player.id] || null,
     }));
 
     res.render('attendance/form', {
@@ -47,48 +80,49 @@ router.get('/:category', isSignedIn, async (req, res) => {
   }
 });
 
-// Submit attendance
-router.post('/', isSignedIn, async (req, res) => {
+router.post('/', requireSignedIn, async (req, res) => {
   try {
-    const { category, date, attendances } = req.body
-    
-    // Validate input
+    const { category, date, attendances } = req.body;
+
     if (!date || !attendances) {
-      req.flash('error', 'البيانات المطلوبة غير مكتملة')
-      return res.redirect(`/attendance/${category}`)
+      req.flash('error', 'البيانات المطلوبة غير مكتملة');
+      return res.redirect(`/attendance/${category}`);
     }
-    
-    // Create attendance records
-    const records = Object.entries(attendances).map(([playerId, data]) => ({
-      player: playerId,
-      status: data.status,
-      comment: data.comment,
-      date: new Date(date)
-    }))
-    
-    await Attendance.insertMany(records)
-    
-    req.flash('success', 'تم تسجيل الحضور بنجاح')
-    res.redirect(`/listings/${category}`)
+
+    const batch = db.batch();
+    Object.entries(attendances).forEach(([playerId, data]) => {
+      const ref = db.collection('attendance').doc();
+      batch.set(ref, {
+        player: playerId,
+        status: data.status,
+        comment: data.comment || '',
+        date: new Date(date),
+        createdAt: new Date(),
+      });
+    });
+    await batch.commit();
+
+    req.flash('success', 'تم تسجيل الحضور بنجاح');
+    res.redirect(`/listings/${category}`);
   } catch (err) {
-    console.error('Error saving attendance:', err)
-    req.flash('error', 'خطأ في حفظ بيانات الحضور')
-    res.redirect(`/attendance/${req.body.category}`)
+    console.error('Error saving attendance:', err);
+    req.flash('error', 'خطأ في حفظ بيانات الحضور');
+    res.redirect(`/attendance/${req.body.category}`);
   }
-})
+});
 
-// View attendance history for a player
-router.get('/player/:id', isSignedIn, async (req, res) => {
+router.get('/player/:id', requireSignedIn, async (req, res) => {
   try {
-    const player = await Player.findById(req.params.id);
-    const user = req.session.user;
+    const playerDoc = await db.collection('players').doc(req.params.id).get();
+    const user = req.user;
 
-    if (!player) {
+    if (!playerDoc.exists) {
       req.flash('error', 'اللاعب غير موجود');
       return res.redirect('/listings');
     }
+    const player = { _id: playerDoc.id, id: playerDoc.id, ...playerDoc.data() };
 
-    const isSamePlayer = user.isPlayer && user._id.toString() === player._id.toString();
+    const isSamePlayer = user.isPlayer && user.isPlayer === player.id;
     const canView = user.isAdmin || user.isView || isSamePlayer;
 
     if (!canView) {
@@ -96,16 +130,14 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
       return res.redirect('/');
     }
 
-    // 📊 Get attendance records (sorted by date descending)
-    const records = await Attendance.find({ player: player._id }).sort({ date: -1 });
+    const recSnap = await db.collection('attendance').where('player', '==', player.id).orderBy('date', 'desc').get();
+    const records = recSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
 
-    // 🧾 Render attendance history page
     res.render('attendance/history', {
       player,
       records,
-      categoryName: getCategoryName(player.category)
+      categoryName: getCategoryName(player.category),
     });
-
   } catch (err) {
     console.error('Error loading attendance history:', err);
     req.flash('error', 'خطأ في تحميل سجل الحضور');
@@ -113,20 +145,22 @@ router.get('/player/:id', isSignedIn, async (req, res) => {
   }
 });
 
-router.get('/:id/edit', isSignedIn, async (req, res) => {
+router.get('/:id/edit', requireSignedIn, async (req, res) => {
   try {
-    const attendance = await Attendance.findById(req.params.id).populate('player');
-    
-    if (!attendance) {
+    const doc = await db.collection('attendance').doc(req.params.id).get();
+    if (!doc.exists) {
       req.flash('error', 'سجل الحضور غير موجود');
       return res.redirect('/attendance');
     }
+    const attendance = { _id: doc.id, ...doc.data() };
+    const playerDoc = await db.collection('players').doc(attendance.player).get();
+    const player = { _id: playerDoc.id, ...playerDoc.data() };
 
     res.render('attendance/edit', {
       attendance,
-      player: attendance.player,
-      today: attendance.date.toISOString().split('T')[0],
-      categoryName: getCategoryName(attendance.player.category)
+      player,
+      today: attendance.date.toDate().toISOString().split('T')[0],
+      categoryName: getCategoryName(player.category),
     });
   } catch (err) {
     console.error('Error loading attendance edit form:', err);
@@ -135,35 +169,31 @@ router.get('/:id/edit', isSignedIn, async (req, res) => {
   }
 });
 
-
-// PUT Update Attendance
-router.put('/:id', isSignedIn, async (req, res) => {
+router.put('/:id', requireSignedIn, async (req, res) => {
   try {
-    const { status, comment, date } = req.body; // Changed from 'comment' to 'notes'
+    const { status, comment, date } = req.body;
 
     if (!status || !date) {
       req.flash('error', 'الحالة وتاريخ التدريب مطلوبان');
       return res.redirect(`/attendance/${req.params.id}/edit`);
     }
 
-    const attendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      {
-        status,
-        comment: comment || '',
-        date: new Date(date),
-        updatedAt: new Date()
-      },
-      { new: true }
-    ).populate('player');
-
-    if (!attendance) {
+    const ref = db.collection('attendance').doc(req.params.id);
+    const doc = await ref.get();
+    if (!doc.exists) {
       req.flash('error', 'سجل الحضور غير موجود');
       return res.redirect('/attendance');
     }
 
+    await ref.update({
+      status,
+      comment: comment || '',
+      date: new Date(date),
+      updatedAt: new Date(),
+    });
+
     req.flash('success', 'تم تحديث سجل الحضور بنجاح');
-    res.redirect(`/attendance/player/${attendance.player._id}`);
+    res.redirect(`/attendance/player/${doc.data().player}`);
   } catch (err) {
     console.error('Error updating attendance:', err);
     req.flash('error', 'خطأ في تحديث سجل الحضور');
@@ -171,36 +201,24 @@ router.put('/:id', isSignedIn, async (req, res) => {
   }
 });
 
-// Delete attendance record
-router.delete('/:id', isSignedIn, async (req, res) => {
+router.delete('/:id', requireSignedIn, async (req, res) => {
   try {
-    const attendance = await Attendance.findByIdAndDelete(req.params.id)
-      .populate('player')
-
-    if (!attendance) {
-      req.flash('error', 'سجل الحضور غير موجود')
-      return res.redirect('/attendance')
+    const ref = db.collection('attendance').doc(req.params.id);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      req.flash('error', 'سجل الحضور غير موجود');
+      return res.redirect('/attendance');
     }
+    const playerId = doc.data().player;
+    await ref.delete();
 
-    req.flash('success', 'تم حذف سجل الحضور بنجاح')
-    res.redirect(`/attendance/player/${attendance.player._id}`)
+    req.flash('success', 'تم حذف سجل الحضور بنجاح');
+    res.redirect(`/attendance/player/${playerId}`);
   } catch (err) {
-    console.error('Error deleting attendance:', err)
-    req.flash('error', 'خطأ في حذف سجل الحضور')
-    res.redirect(`/attendance/${req.params.id}/edit`)
+    console.error('Error deleting attendance:', err);
+    req.flash('error', 'خطأ في حذف سجل الحضور');
+    res.redirect(`/attendance/${req.params.id}/edit`);
   }
-})
+});
 
-// Helper function to get category name
-function getCategoryName(category) {
-  const names = {
-    under14: 'تجمع (Under 14)',
-    under16: 'أشبال (Under 16)',
-    under18: 'ناشئين (Under 18)',
-    under20: 'تحت 20 سنة (Under 20)',
-    man: 'الرجال'
-  }
-  return names[category] || category
-}
-
-module.exports = router
+module.exports = router;

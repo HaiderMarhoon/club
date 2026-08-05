@@ -1,0 +1,18 @@
+<div class="container" style="max-width:420px; margin:4rem auto"><div class="card"><div class="card-body text-center">جارٍ تسجيل الدخول...</div></div></div>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+  const firebaseConfig = { apiKey: 'AIzaSyCUvapmcqTVqe-L6tfU9jWaPVIVTfkIIbg', authDomain: 'club-54d21.firebaseapp.com', projectId: 'club-54d21', storageBucket: 'club-54d21.firebasestorage.app', messagingSenderId: '139667812534', appId: '1:139667812534:web:08390b510501dbbbc7b617' };
+  const username = <%- JSON.stringify(username) %>;
+  const password = <%- JSON.stringify(password) %>;
+  (async () => {
+    try {
+      const auth = getAuth(initializeApp(firebaseConfig));
+      const cred = await signInWithEmailAndPassword(auth, `${username}@handball-app.local`, password);
+      const idToken = await cred.user.getIdToken();
+      const response = await fetch('/auth/session-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken }) });
+      if (!response.ok) throw new Error('session-login failed');
+      window.location.replace('/');
+    } catch (err) { console.error(err); window.location.replace('/auth/sign-in'); }
+  })();
+</script>

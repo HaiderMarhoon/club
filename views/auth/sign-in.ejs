@@ -4,7 +4,8 @@
       <h2 style="font-size: 1.3rem; margin: 0;">تسجيل الدخول</h2>
     </div>
     <div class="card-body">
-      <form action="/auth/sign-in" method="POST">
+      <div id="errorBox" style="color:#dc3545; margin-bottom:1rem; display:none;"></div>
+      <form id="signInForm">
         <div class="form-group">
           <label for="username" class="form-label">اسم المستخدم</label>
           <input type="text" name="username" id="username" class="form-control" required>
@@ -13,7 +14,7 @@
           <label for="password" class="form-label">كلمة المرور</label>
           <input type="password" name="password" id="password" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">تسجيل الدخول</button>
+        <button type="submit" id="signInBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">تسجيل الدخول</button>
       </form>
       <p style="text-align: center; margin-top: 1rem; color: #6b7280;">
         ليس لديك حساب؟ <a href="/auth/sign-up" style="color: #0ea5e9;">إنشاء حساب</a>
@@ -21,3 +22,57 @@
     </div>
   </div>
 </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCUvapmcqTVqe-L6tfU9jWaPVIVTfkIIbg",
+    authDomain: "club-54d21.firebaseapp.com",
+    projectId: "club-54d21",
+    storageBucket: "club-54d21.firebasestorage.app",
+    messagingSenderId: "139667812534",
+    appId: "1:139667812534:web:08390b510501dbbbc7b617",
+  };
+  const EMAIL_DOMAIN = "handball-app.local";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const form = document.getElementById('signInForm');
+  const errorBox = document.getElementById('errorBox');
+  const signInBtn = document.getElementById('signInBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    signInBtn.disabled = true;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, `${username}@${EMAIL_DOMAIN}`, password);
+      const idToken = await cred.user.getIdToken();
+
+      const res = await fetch('/auth/session-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        window.location.href = '/';
+      } else {
+        throw new Error(data.message || 'فشل تسجيل الدخول');
+      }
+    } catch (err) {
+      console.error(err);
+      errorBox.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+      errorBox.style.display = 'block';
+      signInBtn.disabled = false;
+    }
+  });
+</script>

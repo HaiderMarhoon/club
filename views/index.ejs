@@ -15,6 +15,7 @@
           <a href="/listings/category" class="btn btn-success btn-lg">عرض اللاعبين</a>
           <a href="/admin/create-player-account" class="btn btn-warning btn-lg">إنشاء حساب للاعب</a>
           <a href="/admin/add-admin" class="btn btn-warning btn-lg">إضافة مسؤول</a>
+          <a href="/match-live" class="btn btn-info btn-lg">عرض الملعب</a>
         <% } else if (currentPlayer) { %>
           <a href="/listings/profile/<%= currentPlayer._id %>" class="btn btn-sm btn-primary" title="عرض الملف"> الملف التعريفي</a>
         <% } else if (user) { %>
