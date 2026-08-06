@@ -14,6 +14,21 @@ function getCategoryName(category) {
   return names[category] || category;
 }
 
+// Safely converts a Firestore Timestamp, JS Date, string, number, or
+// missing/null value into a real JS Date object (or null if it can't be
+// parsed at all). Use this ANYWHERE a stored `date` field is read, instead
+// of calling .toDate() or `new Date(...)` directly on it.
+function toJSDate(val) {
+  if (!val) return null;                               // undefined / null / ''
+  if (val instanceof Date) return val;                  // already a JS Date
+  if (typeof val.toDate === 'function') return val.toDate(); // Firestore Timestamp
+  if (typeof val === 'object' && typeof val.seconds === 'number') {
+    return new Date(val.seconds * 1000);                // plain {seconds, nanoseconds}
+  }
+  const d = new Date(val);                              // string / number fallback
+  return isNaN(d.getTime()) ? null : d;
+}
+
 router.get('/players/list', requireSignedIn, async (req, res) => {
   try {
     const snap = await db.collection('attendance').get();
@@ -131,7 +146,14 @@ router.get('/player/:id', requireSignedIn, async (req, res) => {
     }
 
     const recSnap = await db.collection('attendance').where('player', '==', player.id).orderBy('date', 'desc').get();
-    const records = recSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    const records = recSnap.docs.map(doc => {
+      const data = doc.data();
+      return {
+        _id: doc.id,
+        ...data,
+        date: toJSDate(data.date), // real Date object, or null if missing/unparseable
+      };
+    });
 
     res.render('attendance/history', {
       player,
@@ -156,10 +178,12 @@ router.get('/:id/edit', requireSignedIn, async (req, res) => {
     const playerDoc = await db.collection('players').doc(attendance.player).get();
     const player = { _id: playerDoc.id, ...playerDoc.data() };
 
+    const attendanceDate = toJSDate(attendance.date);
+
     res.render('attendance/edit', {
       attendance,
       player,
-      today: attendance.date.toDate().toISOString().split('T')[0],
+      today: attendanceDate ? attendanceDate.toISOString().split('T')[0] : '',
       categoryName: getCategoryName(player.category),
     });
   } catch (err) {

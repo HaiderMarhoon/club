@@ -15,6 +15,21 @@ function getCategoryName(category) {
   return names[category] || category;
 }
 
+// Safely converts a Firestore Timestamp, JS Date, string, number, or
+// missing/null value into a real JS Date object (or null if it can't be
+// parsed at all). Same helper used in controllers/attendance.js — keep
+// them in sync, or better, move this into a shared utils file.
+function toJSDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) return val;
+  if (typeof val.toDate === 'function') return val.toDate(); // Firestore Timestamp
+  if (typeof val === 'object' && typeof val.seconds === 'number') {
+    return new Date(val.seconds * 1000);
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 router.get('/', (req, res) => {
   res.render('index.ejs', { user: req.user, currentPlayer: res.locals.currentPlayer });
 });
@@ -94,7 +109,17 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
       req.flash('error', 'اللاعب غير موجود');
       return res.redirect('/listings');
     }
-    const player = { _id: playerDoc.id, id: playerDoc.id, ...playerDoc.data() };
+    const playerData = playerDoc.data();
+
+    // sportsTests is an array field on the player doc — each entry's `date`
+    // may be a Firestore Timestamp, a plain string, or missing, depending
+    // on when/how it was written. Normalize it the same way as attendance dates.
+    const sportsTests = (playerData.sportsTests || []).map(test => ({
+      ...test,
+      date: toJSDate(test.date),
+    }));
+
+    const player = { _id: playerDoc.id, id: playerDoc.id, ...playerData, sportsTests };
 
     // Requires a composite index (player ASC, date DESC)
     const attSnap = await db.collection('attendance')
@@ -102,7 +127,10 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
       .orderBy('date', 'desc')
       .limit(10)
       .get();
-    const attendanceRecords = attSnap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() }));
+    const attendanceRecords = attSnap.docs.map(d => {
+      const data = d.data();
+      return { _id: d.id, id: d.id, ...data, date: toJSDate(data.date) };
+    });
 
     res.render('listings/profile', {
       player,
