@@ -12,4 +12,8 @@ router.get('/', isSignedIn, canManageTeam, (req, res) => {
   res.render('matchLive', { title: 'مباراة مباشرة كاملة' });
 });
 
+router.get('/reports/list', isSignedIn, (req, res) => res.render('matchReports', { title: 'تقارير المباريات' }));
+router.get('/reports/:id', isSignedIn, (req, res) => res.render('matchReport', { title: 'تقرير المباراة', matchId: req.params.id }));
+router.get('/score/:id', (req, res) => res.render('liveScore', { title: 'النتيجة المباشرة', matchId: req.params.id }));
+
 module.exports = router;

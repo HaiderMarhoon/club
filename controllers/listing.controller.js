@@ -122,20 +122,42 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
     const player = { _id: playerDoc.id, id: playerDoc.id, ...playerData, sportsTests };
 
     // Requires a composite index (player ASC, date DESC)
-    const attSnap = await db.collection('attendance')
-      .where('player', '==', player.id)
-      .orderBy('date', 'desc')
-      .limit(10)
-      .get();
+    const [attSnap, playerEventsSnap, assistEventsSnap] = await Promise.all([
+      db.collection('attendance').where('player', '==', player.id).orderBy('date', 'desc').limit(10).get(),
+      db.collection('events').where('playerId', '==', player.id).get(),
+      db.collection('events').where('assistPlayerId', '==', player.id).get(),
+    ]);
     const attendanceRecords = attSnap.docs.map(d => {
       const data = d.data();
       return { _id: d.id, id: d.id, ...data, date: toJSDate(data.date) };
     });
 
+    const playerEvents = playerEventsSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    const shots = playerEvents.filter(e => e.type === 'shot');
+    const goals = shots.filter(e => e.result === 'goal').length;
+    const savesFaced = playerEvents.filter(e => e.type === 'save');
+    const saves = savesFaced.filter(e => e.result === 'save').length;
+    const playerStats = {
+      matches: new Set(playerEvents.map(e => e.matchId).filter(Boolean)).size,
+      goals, shots: shots.length, accuracy: shots.length ? Math.round(goals * 100 / shots.length) : 0,
+      saves, shotsFaced: savesFaced.length, saveRate: savesFaced.length ? Math.round(saves * 100 / savesFaced.length) : 0,
+      assists: assistEventsSnap.size + playerEvents.filter(e => e.type === 'assist').length,
+      steals: playerEvents.filter(e => e.type === 'steal').length,
+      turnovers: playerEvents.filter(e => ['turnover', 'technicalFault'].includes(e.type)).length,
+      blocks: playerEvents.filter(e => e.type === 'block').length,
+      suspensions: playerEvents.filter(e => e.type === 'suspension').length,
+      recentEvents: playerEvents.sort((a, b) => {
+        const ta = a.createdAt && (a.createdAt.seconds || a.createdAt._seconds) || 0;
+        const tb = b.createdAt && (b.createdAt.seconds || b.createdAt._seconds) || 0;
+        return tb - ta;
+      }).slice(0, 10),
+    };
+
     res.render('listings/profile', {
       player,
       attendanceRecords,
       categoryName: getCategoryName(player.category),
+      playerStats,
     });
   } catch (error) {
     console.error('Error loading player profile:', error);

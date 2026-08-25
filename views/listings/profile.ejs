@@ -10,6 +10,22 @@
 
   <div class="row">
 
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header bg-dark text-white"><h5 class="mb-0">إحصائياتي في المباريات</h5></div>
+        <div class="card-body"><div class="row g-3 text-center">
+          <div class="col-6 col-md-3"><div class="text-muted">المباريات</div><h3><%= playerStats.matches %></h3></div>
+          <div class="col-6 col-md-3"><div class="text-muted">الأهداف</div><h3><%= playerStats.goals %></h3><small><%= playerStats.shots %> تسديدة · <%= playerStats.accuracy %>%</small></div>
+          <div class="col-6 col-md-3"><div class="text-muted">التمريرات الحاسمة</div><h3><%= playerStats.assists %></h3></div>
+          <div class="col-6 col-md-3"><div class="text-muted">التصديات</div><h3><%= playerStats.saves %></h3><small><%= playerStats.saveRate %>%</small></div>
+          <div class="col-6 col-md-3"><div class="text-muted">استرجاع الكرة</div><h3><%= playerStats.steals %></h3></div>
+          <div class="col-6 col-md-3"><div class="text-muted">فقدان الكرة</div><h3><%= playerStats.turnovers %></h3></div>
+          <div class="col-6 col-md-3"><div class="text-muted">البلوك الدفاعي</div><h3><%= playerStats.blocks %></h3></div>
+          <div class="col-6 col-md-3"><div class="text-muted">إيقاف دقيقتين</div><h3><%= playerStats.suspensions %></h3></div>
+        </div></div>
+      </div>
+    </div>
+
     <div class="col-md-6">
       <div class="card mb-4">
         <div class="card-header bg-primary text-white">

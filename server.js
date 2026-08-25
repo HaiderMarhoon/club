@@ -100,8 +100,11 @@ app.use('/court', isSignedIn, canManageTeam, (req, res) => {
   res.render('court', { title: 'ملعب كرة اليد' })
 })
 app.use('/match-live', require('./routes/match-live'))
+app.get('/match-reports', isSignedIn, (req, res) => res.redirect('/match-live/reports/list'))
+app.get('/match-report/:id', isSignedIn, (req, res) => res.redirect('/match-live/reports/' + req.params.id))
+app.get('/live-score/:id', (req, res) => res.redirect('/match-live/score/' + req.params.id))
 
-app.get('/players', async (req, res) => {
+app.get('/players', isSignedIn, async (req, res) => {
   try {
     const snap = await db.collection('players').orderBy('name').get();
     res.json(snap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() })));
@@ -122,6 +125,7 @@ app.get('/js/dashboard.js', (req, res) => {
 });
 
 app.post('/events', isSignedIn, canManageTeam, eventsController.addEvent);
+app.delete('/events/:id', isSignedIn, canManageTeam, eventsController.deleteEvent);
 app.delete('/events', isSignedIn, canManageTeam, eventsController.clearEvents);
 app.get('/stats', isSignedIn, eventsController.getStats);
 
@@ -129,6 +133,7 @@ app.post('/matches', isSignedIn, canManageTeam, eventsController.saveMatch);
 app.put('/matches/:id', isSignedIn, canManageTeam, eventsController.updateMatch);
 app.get('/matches', isSignedIn, eventsController.getMatches);
 app.get('/matches/:id', isSignedIn, eventsController.getMatch);
+app.get('/public/matches/:id', eventsController.getPublicMatch);
 app.delete('/matches/:id', isSignedIn, canManageTeam, eventsController.deleteMatch);
 app.get('/statistics', isSignedIn, statisticsController.dashboard);
 
@@ -162,7 +167,7 @@ app.use((err, req, res, next) => {
   })
 })
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

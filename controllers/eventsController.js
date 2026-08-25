@@ -3,7 +3,12 @@ const { db, admin } = require('../config/firebase-admin');
 const { FieldValue } = admin.firestore;
 
 exports.addEvent = async (req, res) => {
-  const eventData = { ...req.body, matchId: req.body.matchId || null, createdAt: new Date() };
+  const eventData = {
+    ...req.body,
+    matchId: req.body.matchId || null,
+    createdAt: new Date(),
+    createdBy: req.user && (req.user.uid || req.user.id) || null,
+  };
   const eventRef = await db.collection('events').add(eventData);
 
   if (req.body.matchId) {
@@ -57,7 +62,12 @@ exports.saveMatch = async (req, res) => {
     return res.status(400).json({ success: false, message: 'الرجاء إدخال اسم المباراة واسم الفريقين.' });
   }
 
-  const matchRef = await db.collection('matches').add({ name, teamA, teamB, period, eventIds: [], createdAt: new Date() });
+  const matchRef = await db.collection('matches').add({
+    name, teamA, teamB, period: period || '1', eventIds: [], status: 'live',
+    clockSeconds: 0, clockRunning: false,
+    roster: Array.isArray(req.body.roster) ? req.body.roster : [],
+    createdAt: new Date(), updatedAt: new Date(),
+  });
 
   if (Array.isArray(events) && events.length) {
     const batch = db.batch();
@@ -88,6 +98,10 @@ exports.updateMatch = async (req, res) => {
   if (teamA) updateData.teamA = teamA;
   if (teamB) updateData.teamB = teamB;
   if (period) updateData.period = period;
+  ['status', 'clockSeconds', 'clockRunning', 'clockStartedAt', 'roster'].forEach(key => {
+    if (req.body[key] !== undefined) updateData[key] = req.body[key];
+  });
+  updateData.updatedAt = new Date();
 
   if (Array.isArray(events) && events.length) {
     const batch = db.batch();
@@ -129,6 +143,25 @@ exports.getMatch = async (req, res) => {
   res.json({ success: true, match: { _id: matchDoc.id, ...matchData, eventIds: events.filter(Boolean) } });
 };
 
+exports.getPublicMatch = async (req, res) => {
+  const matchDoc = await db.collection('matches').doc(req.params.id).get();
+  if (!matchDoc.exists) return res.status(404).json({ success: false, message: 'المباراة غير موجودة.' });
+  const matchData = matchDoc.data();
+  const events = await Promise.all((matchData.eventIds || []).map(async id => {
+    const doc = await db.collection('events').doc(id).get();
+    if (!doc.exists) return null;
+    const e = doc.data();
+    return { _id: doc.id, team: e.team, player: e.player, playerId: e.playerId, type: e.type, result: e.result, period: e.period, matchTime: e.matchTime, shotType: e.shotType, goalDirection: e.goalDirection, technicalLabel: e.technicalLabel, createdAt: e.createdAt };
+  }));
+  const safeMatch = {
+    _id: matchDoc.id, name: matchData.name, teamA: matchData.teamA, teamB: matchData.teamB,
+    period: matchData.period, status: matchData.status, clockSeconds: matchData.clockSeconds || 0,
+    clockRunning: !!matchData.clockRunning, clockStartedAt: matchData.clockStartedAt || null,
+    roster: matchData.roster || [], eventIds: events.filter(Boolean),
+  };
+  res.json({ success: true, match: safeMatch });
+};
+
 exports.deleteMatch = async (req, res) => {
   const matchRef = db.collection('matches').doc(req.params.id);
   const matchDoc = await matchRef.get();
@@ -151,4 +184,20 @@ exports.clearEvents = async (req, res) => {
   snap.docs.forEach(doc => batch.delete(doc.ref));
   await batch.commit();
   res.json({ success: true, message: 'تم مسح بيانات المباراة غير المحفوظة.' });
+};
+
+exports.deleteEvent = async (req, res) => {
+  const eventRef = db.collection('events').doc(req.params.id);
+  const eventDoc = await eventRef.get();
+  if (!eventDoc.exists) return res.status(404).json({ success: false, message: 'الحدث غير موجود.' });
+  const event = eventDoc.data();
+  const batch = db.batch();
+  batch.delete(eventRef);
+  if (event.matchId) {
+    batch.update(db.collection('matches').doc(event.matchId), {
+      eventIds: FieldValue.arrayRemove(req.params.id), updatedAt: new Date(),
+    });
+  }
+  await batch.commit();
+  res.json({ success: true, message: 'تم التراجع عن الحدث.' });
 };

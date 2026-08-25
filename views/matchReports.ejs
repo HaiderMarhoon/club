@@ -1,0 +1,6 @@
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>المباريات والتقارير</h2><a class="btn btn-primary" href="/match-live">مباراة جديدة</a></div>
+<div class="card"><div class="card-body"><div id="loading">جارٍ تحميل المباريات…</div><div class="table-responsive"><table id="matchesTable" class="table d-none"><thead><tr><th>المباراة</th><th>الفريقان</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead><tbody id="matches"></tbody></table></div></div></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+fetch('/matches').then(r=>r.json()).then(ms=>{document.getElementById('loading').remove();document.getElementById('matchesTable').classList.remove('d-none');document.getElementById('matches').innerHTML=ms.map(m=>{let d=m.createdAt&&m.createdAt._seconds?new Date(m.createdAt._seconds*1000).toLocaleDateString('ar-SA'):'—';return `<tr><td>${esc(m.name)}</td><td>${esc(m.teamA)} × ${esc(m.teamB)}</td><td><span class="badge ${m.status==='finished'?'bg-secondary':'bg-success'}">${m.status==='finished'?'منتهية':'مباشرة'}</span></td><td>${d}</td><td><a class="btn btn-sm btn-outline-primary" href="/match-report/${m._id}">فتح التقرير</a></td></tr>`}).join('')||'<tr><td colspan="5">لا توجد مباريات</td></tr>'});
+</script>
