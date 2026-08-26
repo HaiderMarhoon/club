@@ -68,6 +68,37 @@ router.get('/view', requireSignedIn, (req, res) => {
   res.render('listings/view', { categories: ['under14', 'under16', 'under18'] });
 });
 
+// Must stay before /:category so "export" is not treated as a category name.
+router.get('/export', requireSignedIn, async (req, res) => {
+  try {
+    const category = req.query.category;
+    if (!category) return res.status(400).send('الفئة مطلوبة');
+    const from = req.query.from ? new Date(`${req.query.from}T00:00:00`) : null;
+    const to = req.query.to ? new Date(`${req.query.to}T23:59:59.999`) : null;
+    const playersSnap = await db.collection('players').where('category', '==', category).orderBy('name').get();
+    const rows = await Promise.all(playersSnap.docs.map(async doc => {
+      const player = { id: doc.id, ...doc.data() };
+      const attSnap = await db.collection('attendance').where('player', '==', doc.id).get();
+      const records = attSnap.docs.map(d => d.data()).filter(a => {
+        const date = toJSDate(a.date);
+        return date && (!from || date >= from) && (!to || date <= to);
+      });
+      const present = records.filter(a => a.status === 'present').length;
+      const late = records.filter(a => a.status === 'late').length;
+      const absent = records.filter(a => a.status === 'absent').length;
+      return [player.name, getCategoryName(category), present, late, absent, records.length, records.length ? Math.round(present * 100 / records.length) + '%' : '0%'];
+    }));
+    const csvRows = [['اسم اللاعب', 'الفئة', 'حضور', 'تأخر', 'غياب', 'الإجمالي', 'نسبة الحضور'], ...rows];
+    const csv = '\uFEFF' + csvRows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${category}-attendance.csv"`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting category:', error);
+    res.status(500).send('تعذر تصدير بيانات الفئة');
+  }
+});
+
 router.get('/:category', requireSignedIn, async (req, res) => {
   try {
     const category = req.params.category;
@@ -76,10 +107,15 @@ router.get('/:category', requireSignedIn, async (req, res) => {
     const playersSnap = await db.collection('players').where('category', '==', category).orderBy('name').get();
     const players = playersSnap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() }));
 
+    const from = req.query.from ? new Date(`${req.query.from}T00:00:00`) : null;
+    const to = req.query.to ? new Date(`${req.query.to}T23:59:59.999`) : null;
     const playersWithAttendance = await Promise.all(
       players.map(async player => {
         const attSnap = await db.collection('attendance').where('player', '==', player.id).get();
-        const records = attSnap.docs.map(d => d.data());
+        const records = attSnap.docs.map(d => d.data()).filter(a => {
+          const date = toJSDate(a.date);
+          return date && (!from || date >= from) && (!to || date <= to);
+        });
         return {
           ...player,
           presentCount: records.filter(a => a.status === 'present').length,
@@ -94,6 +130,8 @@ router.get('/:category', requireSignedIn, async (req, res) => {
       category,
       players: playersWithAttendance,
       categoryName: getCategoryName(category),
+      dateFrom: req.query.from || '',
+      dateTo: req.query.to || '',
     });
   } catch (error) {
     console.error('Error loading players by category:', error);

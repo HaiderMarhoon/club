@@ -1,8 +1,10 @@
-<div class="container">
+<style>@media print{nav,footer,.no-print,.modal,.btn{display:none!important}body{background:#fff!important}.card{box-shadow:none!important}#playersTable{display:table!important}}</style>
+<div class="container" id="categoryPage" data-category="<%= category || '' %>">
   <div style="margin-bottom: 2rem;">
     <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">
       <% if (category) { %>
         لاعبين فئة <%= categoryName %>
+        <% if (dateFrom || dateTo) { %><small class="d-block text-muted mt-2">الفترة: <%= dateFrom || 'البداية' %> — <%= dateTo || 'اليوم' %></small><% } %>
       <% } else { %>
         جميع اللاعبين
       <% } %>
@@ -25,6 +27,15 @@
       </div>
     <% } %>
   </div>
+  <% if (category) { %>
+  <div class="card mb-4 no-print"><div class="card-header">تحديد فترة الحضور للفئة</div><div class="card-body">
+    <form method="GET" action="/listings/<%= category %>" class="row g-3 align-items-end">
+      <div class="col-md-4"><label class="form-label">من تاريخ</label><input type="date" class="form-control" name="from" id="categoryDateFrom" value="<%= dateFrom %>"></div>
+      <div class="col-md-4"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control" name="to" id="categoryDateTo" value="<%= dateTo %>"></div>
+      <div class="col-md-4"><button class="btn btn-primary" type="submit">مشاهدة الفترة</button> <a class="btn btn-outline-secondary" href="/listings/<%= category %>">جميع التواريخ</a></div>
+    </form>
+  </div></div>
+  <% } %>
 
   <!-- Category Filter -->
   <div class="card" style="margin-bottom: 2rem;">
@@ -240,7 +251,7 @@
             <button class="btn btn-outline-primary" onclick="printTable()">
               <i class="fas fa-print me-1"></i> طباعة
             </button>
-            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+            <button class="btn btn-outline-success" onclick="exportCategory()">
               <i class="fas fa-file-excel me-1"></i> تصدير
             </button>
           </div>
@@ -255,91 +266,16 @@
 
 </div>
 
-<!-- Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exportModalLabel">تصدير البيانات</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="exportForm">
-          <div class="mb-3">
-            <label for="exportFormat" class="form-label">نوع الملف</label>
-            <select class="form-select" id="exportFormat" name="format">
-              <option value="excel">Excel</option>
-              <option value="csv">CSV</option>
-              <option value="pdf">PDF</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="exportRange" class="form-label">نطاق البيانات</label>
-            <select class="form-select" id="exportRange" name="range">
-              <option value="all">جميع البيانات</option>
-              <option value="current">الصفحة الحالية فقط</option>
-              <% if (category) { %>
-                <option value="category">الفئة الحالية فقط</option>
-                <% } %>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="exportColumns" class="form-label">الأعمدة المطلوبة</label>
-            <select class="form-select" id="exportColumns" name="columns" multiple>
-              <option value="name" selected>اسم اللاعب</option>
-              <option value="category" selected>الفئة</option>
-              <option value="present" selected>حضور</option>
-              <option value="late" selected>تأخر</option>
-              <option value="absent" selected>غياب</option>
-              <option value="percentage" selected>النسبة</option>
-            </select>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-        <button type="button" class="btn btn-primary" onclick="exportData()">تصدير</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
   function printTable() {
-    const printContent = `
-      <div class="container">
-        <h2 class="text-center mb-4">قائمة اللاعبين <% if (category) { %>- <%= categoryName %><% } %></h2>
-        <div class="table-responsive">
-          ${document.querySelector('.table-responsive').innerHTML}
-        </div>
-        <div class="text-center mt-4 text-muted">
-          تم الطباعة في ${new Date().toLocaleString('ar-EG')}
-        </div>
-      </div>
-    `;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent;
     window.print();
-    document.body.innerHTML = originalContent;
   }
 
-  function exportData() {
-    const form = document.getElementById('exportForm');
-    const formData = new FormData(form);
-
-    if (category)
-      formData.append('category', '<%= category %>');
-
-    const params = new URLSearchParams(formData).toString();
-    window.location.href = `/listings/export?${params}`;
+  function exportCategory() {
+    const from = document.getElementById('categoryDateFrom')?.value || '';
+    const to = document.getElementById('categoryDateTo')?.value || '';
+    const category = document.getElementById('categoryPage').dataset.category;
+    const params = new URLSearchParams({ category, from, to });
+    window.location.assign('/listings/export?' + params.toString());
   }
-
-  // Initialize select2 for multi-select
-  $(document).ready(function () {
-    $('#exportColumns').select2({
-      placeholder: "اختر الأعمدة",
-      width: '100%',
-      dropdownParent: $('#exportModal')
-    });
-  });
 </script>

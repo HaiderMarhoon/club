@@ -66,6 +66,7 @@ exports.saveMatch = async (req, res) => {
     name, teamA, teamB, period: period || '1', eventIds: [], status: 'live',
     clockSeconds: 0, clockRunning: false,
     roster: Array.isArray(req.body.roster) ? req.body.roster : [],
+    startingLineup: Array.isArray(req.body.startingLineup) ? req.body.startingLineup.slice(0, 7) : [],
     createdAt: new Date(), updatedAt: new Date(),
   });
 
@@ -151,7 +152,7 @@ exports.getPublicMatch = async (req, res) => {
     const doc = await db.collection('events').doc(id).get();
     if (!doc.exists) return null;
     const e = doc.data();
-    return { _id: doc.id, team: e.team, player: e.player, playerId: e.playerId, type: e.type, result: e.result, period: e.period, matchTime: e.matchTime, shotType: e.shotType, goalDirection: e.goalDirection, technicalLabel: e.technicalLabel, createdAt: e.createdAt };
+    return { _id: doc.id, team: e.team, player: e.player, playerId: e.playerId, type: e.type, result: e.result, period: e.period, matchTime: e.matchTime, shotType: e.shotType, goalDirection: e.goalDirection, goalLocation: e.goalLocation, shotLocation: e.shotLocation, technicalLabel: e.technicalLabel, createdAt: e.createdAt };
   }));
   const safeMatch = {
     _id: matchDoc.id, name: matchData.name, teamA: matchData.teamA, teamB: matchData.teamB,
@@ -167,6 +168,9 @@ exports.deleteMatch = async (req, res) => {
   const matchDoc = await matchRef.get();
   if (!matchDoc.exists) {
     return res.status(404).json({ success: false, message: 'المباراة غير موجودة.' });
+  }
+  if (matchDoc.data().status !== 'finished') {
+    return res.status(400).json({ success: false, message: 'يجب إنهاء المباراة قبل حذفها.' });
   }
 
   const eventsSnap = await db.collection('events').where('matchId', '==', req.params.id).get();
