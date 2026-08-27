@@ -26,6 +26,16 @@
 
         <div class="form-row" style="margin-bottom: 2rem;">
           <div class="form-group">
+            <label for="position" class="form-label">مركز اللاعب</label>
+            <select class="form-control" id="position" name="position" required>
+              <option value="court" <%= player.position !== 'goalkeeper' ? 'selected' : '' %>>لاعب ملعب</option>
+              <option value="goalkeeper" <%= player.position === 'goalkeeper' ? 'selected' : '' %>>حارس مرمى</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 2rem;">
+          <div class="form-group">
             <label for="shirtNumber" class="form-label">رقم القميص</label>
             <input type="number" class="form-control" id="shirtNumber" name="shirtNumber" 
                    min="1" max="99" value="<%= player.shirtNumber %>">

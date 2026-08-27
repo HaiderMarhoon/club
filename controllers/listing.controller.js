@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/firebase-admin');
+const { db, admin } = require('../config/firebase-admin');
 const requireSignedIn = require('../middleware/require-signed-in');
 const isAdmin = require('../middleware/is-admin');
 
@@ -30,6 +30,33 @@ function toJSDate(val) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function eventSecond(event) {
+  const parts = String(event.matchTime || '0:0').split(':').map(Number);
+  const withinPeriod = (parts[0] || 0) * 60 + (parts[1] || 0);
+  return (Math.max(1, Number(event.period) || 1) - 1) * 1800 + withinPeriod;
+}
+
+function calculatePlayingSeconds(playerId, matches, playerEvents) {
+  const byMatch = {};
+  playerEvents.filter(e => e.matchId).forEach(e => (byMatch[e.matchId] ||= []).push(e));
+  let total = 0;
+  matches.forEach(match => {
+    if (!(match.roster || []).some(p => p._id === playerId)) return;
+    const events = (byMatch[match._id] || []).slice().sort((a, b) => eventSecond(a) - eventSecond(b));
+    const maxEvent = events.reduce((max, e) => Math.max(max, eventSecond(e)), 0);
+    const matchEnd = (Math.max(1, Number(match.period) || 1) - 1) * 1800 + Number(match.clockSeconds || 0);
+    const end = Math.max(maxEvent, matchEnd);
+    let enteredAt = (match.startingLineup || []).includes(playerId) ? 0 : null;
+    events.filter(e => e.type === 'substitution').forEach(e => {
+      const at = eventSecond(e);
+      if (e.result === 'in' && enteredAt === null) enteredAt = at;
+      if (e.result === 'out' && enteredAt !== null) { total += Math.max(0, at - enteredAt); enteredAt = null; }
+    });
+    if (enteredAt !== null) total += Math.max(0, end - enteredAt);
+  });
+  return Math.round(total);
+}
+
 router.get('/', (req, res) => {
   res.render('index.ejs', { user: req.user, currentPlayer: res.locals.currentPlayer });
 });
@@ -50,6 +77,7 @@ router.post('/', requireSignedIn, async (req, res) => {
   weight: req.body.weight ? Number(req.body.weight) : null,
   phoneNumber: req.body.phoneNumber || null,
   shirtNumber: req.body.shirtNumber ? Number(req.body.shirtNumber) : null,
+  position: req.body.position === 'goalkeeper' ? 'goalkeeper' : 'court',
   sportsTests: req.body.sportsTests ? JSON.parse(req.body.sportsTests) : [],
   createdAt: new Date(),
 };
@@ -160,10 +188,11 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
     const player = { _id: playerDoc.id, id: playerDoc.id, ...playerData, sportsTests };
 
     // Requires a composite index (player ASC, date DESC)
-    const [attSnap, playerEventsSnap, assistEventsSnap] = await Promise.all([
+    const [attSnap, playerEventsSnap, assistEventsSnap, matchesSnap] = await Promise.all([
       db.collection('attendance').where('player', '==', player.id).orderBy('date', 'desc').limit(10).get(),
       db.collection('events').where('playerId', '==', player.id).get(),
       db.collection('events').where('assistPlayerId', '==', player.id).get(),
+      db.collection('matches').get(),
     ]);
     const attendanceRecords = attSnap.docs.map(d => {
       const data = d.data();
@@ -171,10 +200,61 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
     });
 
     const playerEvents = playerEventsSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    const matches = matchesSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    const matchNames = Object.fromEntries(matches.map(m => [m._id, m.name]));
     const shots = playerEvents.filter(e => e.type === 'shot');
     const goals = shots.filter(e => e.result === 'goal').length;
     const savesFaced = playerEvents.filter(e => e.type === 'save');
     const saves = savesFaced.filter(e => e.result === 'save').length;
+    const playingSeconds = calculatePlayingSeconds(player.id, matches, playerEvents);
+    const technicalErrors = playerEvents.filter(e => ['technicalFault', 'turnover', 'lineTouch'].includes(e.type)).map(e => ({
+      type: e.technicalLabel || (e.type === 'turnover' ? 'فقدان كرة' : e.type === 'lineTouch' ? 'دخول المنطقة' : 'خطأ فني'),
+      matchName: matchNames[e.matchId] || 'مباراة', period: e.period || '-', time: e.matchTime || '--:--',
+    })).reverse();
+    const playerShots = playerEvents.filter(e => ['shot', 'save'].includes(e.type) && e.shotLocation).map(e => ({
+      id: e._id, eventType: e.type, opponentShooter: e.opponentShooter || '', result: e.result, shotType: e.shotType, shotLocation: e.shotLocation,
+      goalDirection: e.goalDirection, goalLocation: e.goalLocation, matchName: matchNames[e.matchId] || 'مباراة',
+      period: e.period || '-', time: e.matchTime || '--:--',
+    }));
+    const performanceMatches = matches.filter(m =>
+      (m.roster || []).some(p => p._id === player.id) || playerEvents.some(e => e.matchId === m._id)
+    ).map(m => {
+      const evs = playerEvents.filter(e => e.matchId === m._id);
+      const matchShots = evs.filter(e => e.type === 'shot');
+      const mapShots = evs.filter(e => ['shot', 'save'].includes(e.type));
+      const matchGoals = matchShots.filter(e => e.result === 'goal').length;
+      const faced = evs.filter(e => e.type === 'save');
+      const matchErrors = evs.filter(e => ['technicalFault', 'turnover', 'lineTouch'].includes(e.type));
+      return {
+        id: m._id, name: m.name || 'مباراة', opponent: m.teamB || '', status: m.status || '',
+        date: m.createdAt && (m.createdAt.seconds || m.createdAt._seconds) ? new Date((m.createdAt.seconds || m.createdAt._seconds) * 1000).toISOString() : '',
+        stats: {
+          goals: matchGoals, shots: matchShots.length,
+          accuracy: matchShots.length ? Math.round(matchGoals * 100 / matchShots.length) : 0,
+          saves: faced.filter(e => e.result === 'save').length, faced: faced.length,
+          assists: evs.filter(e => e.type === 'assist').length + assistEventsSnap.docs.filter(d => d.data().matchId === m._id).length,
+          steals: evs.filter(e => e.type === 'steal').length,
+          errors: matchErrors.length, blocks: evs.filter(e => e.type === 'block').length,
+          playingSeconds: calculatePlayingSeconds(player.id, [m], evs),
+        },
+        shots: mapShots.filter(e => e.shotLocation).map(e => ({
+          id: e._id, eventType: e.type, opponentShooter: e.opponentShooter || '', result: e.result, shotType: e.shotType, shotLocation: e.shotLocation,
+          goalDirection: e.goalDirection, goalLocation: e.goalLocation, matchName: m.name || 'مباراة',
+          period: e.period || '-', time: e.matchTime || '--:--',
+        })),
+        errors: matchErrors.map(e => ({
+          type: e.technicalLabel || (e.type === 'turnover' ? 'فقدان كرة' : e.type === 'lineTouch' ? 'دخول المنطقة' : 'خطأ فني'),
+          period: e.period || '-', time: e.matchTime || '--:--',
+        })),
+      };
+    }).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const minutes = playingSeconds / 60;
+    const advice = [];
+    if (shots.length >= 3 && goals / shots.length < 0.5) advice.push('رفع جودة اختيار التسديدة والتركيز على الزوايا الأكثر نجاحاً.');
+    if (technicalErrors.length > Math.max(2, shots.length * 0.25)) advice.push('تقليل الأخطاء الفنية عبر تحسين القرار والتمرير تحت الضغط.');
+    if (minutes >= 10 && goals / minutes < 0.15 && shots.length) advice.push('زيادة الفاعلية الهجومية والتحرك بدون كرة لخلق فرص أكثر.');
+    if (playerEvents.filter(e => e.type === 'steal').length > technicalErrors.length) advice.push('الأداء الدفاعي والاسترجاع نقطة قوة؛ حافظ على نفس مستوى الضغط.');
+    if (!advice.length) advice.push('الأداء متوازن وفق البيانات المسجلة؛ استمر مع التركيز على الثبات من مباراة لأخرى.');
     const playerStats = {
       matches: new Set(playerEvents.map(e => e.matchId).filter(Boolean)).size,
       goals, shots: shots.length, accuracy: shots.length ? Math.round(goals * 100 / shots.length) : 0,
@@ -184,6 +264,9 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
       turnovers: playerEvents.filter(e => ['turnover', 'technicalFault'].includes(e.type)).length,
       blocks: playerEvents.filter(e => e.type === 'block').length,
       suspensions: playerEvents.filter(e => e.type === 'suspension').length,
+      playingSeconds,
+      goalsPer60: minutes ? (goals * 60 / minutes).toFixed(1) : '0.0',
+      errorsPer60: minutes ? (technicalErrors.length * 60 / minutes).toFixed(1) : '0.0',
       recentEvents: playerEvents.sort((a, b) => {
         const ta = a.createdAt && (a.createdAt.seconds || a.createdAt._seconds) || 0;
         const tb = b.createdAt && (b.createdAt.seconds || b.createdAt._seconds) || 0;
@@ -196,11 +279,41 @@ router.get('/profile/:id', requireSignedIn, async (req, res) => {
       attendanceRecords,
       categoryName: getCategoryName(player.category),
       playerStats,
+      playerShots,
+      technicalErrors,
+      advice,
+      coachNotes: (playerData.coachNotes || []).slice().reverse(),
+      performanceMatches,
     });
   } catch (error) {
     console.error('Error loading player profile:', error);
     req.flash('error', 'فشل في تحميل الملف الشخصي');
     res.redirect('/listings');
+  }
+});
+
+router.post('/profile/:id/notes', requireSignedIn, async (req, res) => {
+  try {
+    if (!req.user || (!req.user.isAdmin && !req.user.isCoach)) {
+      return res.status(403).send('غير مصرح بإضافة ملاحظة');
+    }
+    const text = String(req.body.note || '').trim();
+    if (!text) {
+      req.flash('error', 'اكتب الملاحظة أولاً');
+      return res.redirect(`/listings/profile/${req.params.id}`);
+    }
+    const note = {
+      text: text.slice(0, 1000),
+      author: req.user.username || req.user.email || 'المدرب',
+      createdAt: new Date().toISOString(),
+    };
+    await db.collection('players').doc(req.params.id).update({ coachNotes: admin.firestore.FieldValue.arrayUnion(note) });
+    req.flash('success', 'تم حفظ الملاحظة');
+    res.redirect(`/listings/profile/${req.params.id}`);
+  } catch (error) {
+    console.error('Error adding coach note:', error);
+    req.flash('error', 'تعذر حفظ الملاحظة');
+    res.redirect(`/listings/profile/${req.params.id}`);
   }
 });
 
@@ -231,6 +344,7 @@ router.put('/:id', requireSignedIn, async (req, res) => {
       weight: req.body.weight ? Number(req.body.weight) : null,
       phoneNumber: req.body.phoneNumber,
       shirtNumber: req.body.shirtNumber ? Number(req.body.shirtNumber) : null,
+      position: req.body.position === 'goalkeeper' ? 'goalkeeper' : 'court',
       sportsTests: req.body.sportsTests || [],
     };
 

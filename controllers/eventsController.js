@@ -152,7 +152,7 @@ exports.getPublicMatch = async (req, res) => {
     const doc = await db.collection('events').doc(id).get();
     if (!doc.exists) return null;
     const e = doc.data();
-    return { _id: doc.id, team: e.team, player: e.player, playerId: e.playerId, type: e.type, result: e.result, period: e.period, matchTime: e.matchTime, shotType: e.shotType, goalDirection: e.goalDirection, goalLocation: e.goalLocation, shotLocation: e.shotLocation, technicalLabel: e.technicalLabel, createdAt: e.createdAt };
+    return { _id: doc.id, team: e.team, player: e.player, playerId: e.playerId, opponentShooter: e.opponentShooter, type: e.type, result: e.result, period: e.period, matchTime: e.matchTime, shotType: e.shotType, goalDirection: e.goalDirection, goalLocation: e.goalLocation, shotLocation: e.shotLocation, technicalLabel: e.technicalLabel, createdAt: e.createdAt };
   }));
   const safeMatch = {
     _id: matchDoc.id, name: matchData.name, teamA: matchData.teamA, teamB: matchData.teamB,
