@@ -8,9 +8,10 @@
         </div>
         
           <form action="/admin/create-player-account" method="POST" dir="rtl">
+            <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-danger"><%= error %></div><% } %>
             <div class="mb-3">
               <label for="username" class="form-label">اسم المستخدم</label>
-              <input type="text" class="form-control" id="username" name="username" required>
+              <input type="text" class="form-control" id="username" name="username" value="<%= typeof formData !== 'undefined' ? (formData.username || '') : '' %>" required>
             </div>
             
             <div class="mb-3">
@@ -20,12 +21,14 @@
             
             <div class="mb-3">
               <label for="playerId" class="form-label">اختر اللاعب</label>
+              <input type="search" class="form-control mb-2" id="playerSearch" placeholder="ابحث بالاسم أو الفئة أو رقم القميص">
               <select class="form-select" id="playerId" name="playerId" required>
                 <option value="">-- اختر لاعب --</option>
                 <% players.forEach(player => { %>
-                  <option value="<%= player._id %>"><%= player.name %></option>
+                  <option value="<%= player._id %>" data-search="<%= player.name %> <%= player.categoryName %> <%= player.shirtNumber %>" <%= typeof formData !== 'undefined' && formData.playerId === player._id ? 'selected' : '' %> <%= player.hasAccount ? 'disabled' : '' %>><%= player.name %> — <%= player.categoryName %><%= player.shirtNumber ? ' — رقم ' + player.shirtNumber : '' %><%= player.hasAccount ? ' (لديه حساب)' : '' %></option>
                 <% }); %>
               </select>
+              <div class="form-text">إجمالي اللاعبين: <%= players.length %>. اللاعب المرتبط بحساب يظهر أيضًا مع توضيح حالته.</div>
             </div>
             
             <div class="d-grid">
@@ -37,3 +40,14 @@
     </div>
   </div>
 </div>
+<script>
+(() => {
+  const search = document.getElementById('playerSearch'), select = document.getElementById('playerId');
+  if (!search || !select) return;
+  const options = Array.from(select.options).slice(1);
+  search.addEventListener('input', () => {
+    const query = search.value.trim().toLocaleLowerCase('ar');
+    options.forEach(option => { option.hidden = Boolean(query) && !option.dataset.search.toLocaleLowerCase('ar').includes(query); });
+  });
+})();
+</script>

@@ -4,6 +4,23 @@ const { db, auth } = require('../config/firebase-admin');
 const { EMAIL_DOMAIN } = require('../config/firebase-client-config');
 const isAdmin = require('../middleware/is-admin');
 
+const categoryNames = { under14: 'تجمع (تحت 14)', under16: 'أشبال (تحت 16)', under18: 'ناشئين (تحت 18)', under20: 'تحت 20 سنة', man: 'الرجال' };
+
+async function loadPlayersForAccountForm() {
+  const [playersSnap, usersSnap] = await Promise.all([db.collection('players').get(), db.collection('users').get()]);
+  const linkedPlayerIds = new Set(usersSnap.docs.map(doc => doc.data().isPlayer).filter(Boolean));
+  return playersSnap.docs.map(doc => {
+    const data = doc.data();
+    return {
+      _id: doc.id,
+      name: String(data.name || '').trim() || `لاعب بدون اسم (${doc.id.slice(0, 6)})`,
+      categoryName: categoryNames[data.category] || data.category || 'فئة غير محددة',
+      shirtNumber: data.shirtNumber || '',
+      hasAccount: linkedPlayerIds.has(doc.id),
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+}
+
 router.get('/players', isAdmin, async (req, res, next) => {
   try {
     const playersSnap = await db.collection('players').get();
@@ -87,8 +104,7 @@ router.post('/add-admin', isAdmin, async (req, res, next) => {
 
 router.get('/create-player-account', isAdmin, async (req, res, next) => {
   try {
-    const snap = await db.collection('players').get();
-    const players = snap.docs.map(d => ({ _id: d.id, name: d.data().name }));
+    const players = await loadPlayersForAccountForm();
     res.render('admin/createPlayerAccount', { players, title: 'إنشاء حساب لاعب' });
   } catch (err) {
     next(err);
@@ -97,8 +113,7 @@ router.get('/create-player-account', isAdmin, async (req, res, next) => {
 
 router.post('/create-player-account', isAdmin, async (req, res, next) => {
   const reloadPlayers = async () => {
-    const snap = await db.collection('players').get();
-    return snap.docs.map(d => ({ _id: d.id, name: d.data().name }));
+    return loadPlayersForAccountForm();
   };
 
   try {
@@ -127,6 +142,13 @@ router.post('/create-player-account', isAdmin, async (req, res, next) => {
         players: await reloadPlayers(),
         error: 'اللاعب المحدد غير صحيح',
         formData: req.body,
+      });
+    }
+
+    const linkedAccount = await db.collection('users').where('isPlayer', '==', playerId).limit(1).get();
+    if (!linkedAccount.empty) {
+      return res.status(400).render('admin/createPlayerAccount', {
+        players: await reloadPlayers(), error: 'هذا اللاعب مرتبط بحساب بالفعل', formData: req.body,
       });
     }
 

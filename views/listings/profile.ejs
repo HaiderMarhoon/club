@@ -8,9 +8,17 @@
     <%}%>
   </div>
 
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-2"><div class="nav nav-pills nav-fill gap-2" id="playerProfileNavigation">
+      <button class="nav-link" type="button" data-player-tab="match-stats">إحصائيات المباريات</button>
+      <button class="nav-link" type="button" data-player-tab="attendance">الحضور</button>
+      <button class="nav-link" type="button" data-player-tab="profile-info">الملف الشخصي</button>
+    </div></div>
+  </div>
+
   <div class="row">
 
-    <div class="col-12 mb-4">
+    <div class="col-12 mb-4" data-player-section="match-stats">
       <div class="card">
         <div class="card-header bg-dark text-white"><h5 class="mb-0">إحصائياتي في المباريات</h5></div>
         <div class="card-body"><div class="row g-3 text-center">
@@ -29,7 +37,7 @@
       </div>
     </div>
 
-    <div class="col-12 mb-4" id="personalShotApp" data-shots="<%= encodeURIComponent(JSON.stringify(typeof playerShots !== 'undefined' ? playerShots : [])) %>" data-matches="<%= encodeURIComponent(JSON.stringify(typeof performanceMatches !== 'undefined' ? performanceMatches : [])) %>">
+    <div class="col-12 mb-4" data-player-section="match-stats" id="personalShotApp" data-shots="<%= encodeURIComponent(JSON.stringify(typeof playerShots !== 'undefined' ? playerShots : [])) %>" data-matches="<%= encodeURIComponent(JSON.stringify(typeof performanceMatches !== 'undefined' ? performanceMatches : [])) %>">
       <div class="card"><div class="card-header bg-dark text-white"><h5 class="mb-0">خريطة تسديداتي الشخصية</h5></div><div class="card-body">
         <div class="row g-2 align-items-end mb-4"><div class="col-md-8"><label class="form-label">اختر تقرير المباراة</label><select id="personalMatchSelect" class="form-select"><option value="career">جميع المباريات</option></select></div><div class="col-md-4"><button class="btn btn-primary w-100" onclick="showPersonalMatchReport()">عرض تقرير اللاعب</button></div></div>
         <div id="personalMatchTitle" class="alert alert-info text-center">الإحصائيات الإجمالية لجميع المباريات</div>
@@ -49,7 +57,7 @@
       <% coachNotes.forEach(note => { %><div class="border rounded p-3 mb-2"><div><%= note.text %></div><small class="text-muted"><%= note.author %> · <%= new Date(note.createdAt).toLocaleString('ar-SA') %></small></div><% }) %><% if (!coachNotes.length) { %><div class="text-muted">لا توجد ملاحظات حتى الآن.</div><% } %>
     </div></div></div>
 
-    <div class="col-md-6">
+    <div class="col-md-6" data-player-section="profile-info">
       <div class="card mb-4">
         <div class="card-header bg-primary text-white">
           <h5 class="mb-0">المعلومات الأساسية</h5>
@@ -107,8 +115,8 @@
     </div>
 
     <!-- Attendance and Actions Column -->
-    <% if (user && user.isAdmin) { %>
-      <div class="col-md-6">
+    <div class="col-md-6">
+      <% if (user && user.isAdmin) { %>
         <div class="card mb-4">
           <div class="card-header bg-success text-white">
             <h5 class="mb-0">الإجراءات</h5>
@@ -183,5 +191,32 @@
   </div>
 </div>
 <script>
+(() => {
+  const nav = document.getElementById('playerProfileNavigation');
+  if (!nav) return;
+  const sectionForHeading = {
+    'الأخطاء المسجلة ووقتها': 'match-stats', 'نصائح الأداء': 'match-stats',
+    'ملاحظات المدرب والإدارة': 'profile-info', 'الإجراءات': 'profile-info',
+    'سجل الحضور الأخير': 'attendance'
+  };
+  document.querySelectorAll('.card-header h5').forEach(heading => {
+    const section = sectionForHeading[heading.textContent.trim()];
+    if (!section) return;
+    const container = ['الإجراءات', 'سجل الحضور الأخير'].includes(heading.textContent.trim())
+      ? heading.closest('.card')
+      : (heading.closest('[class*="col-"]') || heading.closest('.card'));
+    if (container) container.dataset.playerSection = section;
+  });
+  const showSection = requested => {
+    const section = ['match-stats', 'attendance', 'profile-info'].includes(requested) ? requested : 'match-stats';
+    document.querySelectorAll('[data-player-section]').forEach(element => element.classList.toggle('d-none', element.dataset.playerSection !== section));
+    nav.querySelectorAll('[data-player-tab]').forEach(button => button.classList.toggle('active', button.dataset.playerTab === section));
+    if (location.hash !== '#' + section) history.replaceState(null, '', '#' + section);
+  };
+  nav.addEventListener('click', event => { const button = event.target.closest('[data-player-tab]'); if (button) showSection(button.dataset.playerTab); });
+  window.addEventListener('hashchange', () => showSection(location.hash.slice(1)));
+  showSection(location.hash.slice(1));
+})();
+
 (()=>{const app=document.getElementById('personalShotApp');if(!app)return;const careerShots=JSON.parse(decodeURIComponent(app.dataset.shots||'%5B%5D')),matches=JSON.parse(decodeURIComponent(app.dataset.matches||'%5B%5D')),colors={goal:'#10b981',miss:'#ef4444',blocked:'#f59e0b',save:'#0dcaf0'},$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));$('personalMatchSelect').innerHTML='<option value="career">جميع المباريات</option>'+matches.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}${m.opponent?' — '+esc(m.opponent):''}</option>`).join('');function dot(group,x,y,color,shot){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');Object.entries({cx:x,cy:y,r:7,fill:color,stroke:'#071411','stroke-width':2}).forEach(([k,v])=>c.setAttribute(k,v));c.classList.add('personal-shot-marker');c.dataset.shotId=shot.id;c.style.cursor='pointer';c.onclick=()=>show(shot);$(group).appendChild(c)}function show(s){document.querySelectorAll('.personal-shot-marker').forEach(n=>{let selected=n.dataset.shotId===s.id;n.setAttribute('r',selected?11:7);n.setAttribute('stroke',selected?'#fff':'#071411');n.setAttribute('stroke-width',selected?4:2)});$('personalShotDetail').className='alert alert-dark mt-3 text-center';$('personalShotDetail').textContent=`${s.eventType==='save'?'المسدّد: '+(s.opponentShooter||'غير محدد')+' · ':''}${s.matchName} · الشوط ${s.period} · ${s.time} — ${{goal:'هدف',miss:'خارج',blocked:'محجوبة',save:'تصدي'}[s.result]||s.result} (${s.shotType||'غير محدد'})`}function renderShots(shots){$('personalCourtDots').innerHTML='';$('personalGoalDots').innerHTML='';shots.forEach(s=>{let color=colors[s.result]||'#888';if(s.shotLocation){let[x,y]=s.shotLocation.split(',').map(Number);dot('personalCourtDots',x*3,y*3,color,s)}if(s.goalDirection&&s.goalDirection!=='outside'){if(s.goalLocation){let[x,y]=s.goalLocation.split(',').map(Number);dot('personalGoalDots',30+x*2.4,25+y*1.5,color,s)}else{let[r,c]=s.goalDirection.split('-');dot('personalGoalDots',{left:70,center:150,right:230}[c],{top:50,mid:100,bottom:150}[r],color,s)}}});$('personalShotDetail').className='alert alert-secondary mt-3 text-center';$('personalShotDetail').textContent=shots.length?'اضغط على تسديدة لإظهار موقعها في الملعب والمرمى معاً.':'لا توجد تسديدات مسجلة في هذا التقرير.'}function statCards(s){let items=[['الأهداف',s.goals],['التسديدات',s.shots],['الدقة',s.accuracy+'%'],['التصديات',s.saves+'/'+s.faced],['المساعدات',s.assists],['الاسترجاع',s.steals],['الأخطاء',s.errors],['وقت اللعب',Math.floor(s.playingSeconds/60)+':'+String(s.playingSeconds%60).padStart(2,'0')]];$('personalMatchStats').innerHTML=items.map(x=>`<div class="col-6 col-md-3"><div class="border rounded p-2"><small class="text-muted">${x[0]}</small><h4>${x[1]}</h4></div></div>`).join('')}window.showPersonalMatchReport=()=>{let id=$('personalMatchSelect').value;if(id==='career'){$('personalMatchTitle').textContent='الإحصائيات الإجمالية لجميع المباريات';$('personalMatchStats').innerHTML='';$('personalMatchErrors').textContent='اختر مباراة محددة لعرض أخطائها.';renderShots(careerShots);return}let m=matches.find(x=>x.id===id);if(!m)return;$('personalMatchTitle').textContent=`${m.name}${m.opponent?' — '+m.opponent:''}`;statCards(m.stats);$('personalMatchErrors').innerHTML=m.errors.length?m.errors.map(e=>`<div class="d-flex justify-content-between border-bottom py-2"><span>${esc(e.type)}</span><span>ش${esc(e.period)} · ${esc(e.time)}</span></div>`).join(''):'لا توجد أخطاء مسجلة في هذه المباراة.';renderShots(m.shots)};renderShots(careerShots)})();
 </script>
