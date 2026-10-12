@@ -1,0 +1,7 @@
+<div class="container py-4" dir="rtl"><h2>تعديل حساب <%= account.username %></h2>
+<% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+<form method="POST" action="/admin/accounts/<%= account._id %>/edit" class="card card-body">
+<label class="form-label" for="password">كلمة مرور جديدة (اتركها فارغة للإبقاء على الحالية)</label><input class="form-control mb-3" id="password" name="password" type="password" minlength="6" autocomplete="new-password">
+<label class="form-label" for="playerId">اللاعب المرتبط بالحساب</label><select class="form-select mb-3" id="playerId" name="playerId"><option value="">بدون ارتباط</option>
+<% players.forEach(p => { %><option value="<%= p._id %>" <%= account.isPlayer === p._id ? 'selected' : '' %> <%= p.hasAccount && account.isPlayer !== p._id ? 'disabled' : '' %>><%= p.name %> — <%= p.categoryName %></option><% }) %></select>
+<p class="text-muted">تغيير كلمة المرور ينهي جلسات الدخول السابقة. صلاحيات الحساب تبقى كما هي.</p><button class="btn btn-primary">حفظ التعديلات</button><a class="btn btn-link" href="/#accounts">عودة للحسابات</a></form></div>

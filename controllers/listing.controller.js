@@ -58,7 +58,7 @@ function calculatePlayingSeconds(playerId, matches, playerEvents) {
 }
 
 router.get('/', (req, res) => {
-  res.render('index.ejs', { user: req.user, currentPlayer: res.locals.currentPlayer });
+  res.redirect('/');
 });
 
 router.get('/new', requireSignedIn, (req, res) => {
@@ -380,7 +380,7 @@ router.delete('/:id', requireSignedIn, async (req, res) => {
 });
 
 router.get('/admin/dashboard', isAdmin, (req, res) => {
-  res.render('admin/dashboard');
+  res.redirect('/#accounts');
 });
 
 module.exports = router;

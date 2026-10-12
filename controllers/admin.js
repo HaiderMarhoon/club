@@ -21,31 +21,11 @@ async function loadPlayersForAccountForm() {
   }).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 }
 
+router.get('/dashboard', isAdmin, (req, res) => res.redirect('/#accounts'));
+
 router.get('/players', isAdmin, async (req, res, next) => {
   try {
-    const playersSnap = await db.collection('players').get();
-    const players = playersSnap.docs.map(d => ({ _id: d.id, id: d.id, ...d.data() }));
-
-    // Firestore has no populate(); fetch users, then resolve each linked player manually.
-    const usersSnap = await db.collection('users').get();
-    const users = await Promise.all(
-      usersSnap.docs
-        .filter(d => d.data().isPlayer)
-        .map(async d => {
-          const data = d.data();
-          const playerDoc = await db.collection('players').doc(data.isPlayer).get();
-          return {
-            _id: d.id,
-            username: data.username,
-            // Firestore returns a Timestamp here, not a JS Date — .toDate()
-            // converts it so the view's .toLocaleDateString() call works.
-            createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
-              ? data.createdAt.toDate()
-              : data.createdAt,
-            isPlayer: playerDoc.exists ? { _id: playerDoc.id, ...playerDoc.data() } : null,
-          };
-        })
-    );
+    const { players, users } = await require('../services/admin-accounts')();
 
     res.render('admin/players-list', {
       title: 'قائمة اللاعبين',
@@ -64,7 +44,9 @@ router.get('/add-admin', isAdmin, (req, res) => {
 
 router.post('/add-admin', isAdmin, async (req, res, next) => {
   try {
-    const { username, password, role = 'admin' } = req.body;
+    const { password, role = 'admin' } = req.body;
+    const username = String(req.body.username || '').trim().toLowerCase();
+    validateCredentials(username, password);
 
     if (!username || !password || !['admin', 'coach'].includes(role)) {
       req.flash('error', 'جميع الحقول مطلوبة');
@@ -77,16 +59,16 @@ router.post('/add-admin', isAdmin, async (req, res, next) => {
       return res.status(400).render('admin/addAdmin', { formData: req.body, title: 'إضافة مسؤول', messages: req.flash() });
     }
 
-    const userRecord = await auth.createUser({
+    const userRecord = await createAccount({
       email: `${username}@${EMAIL_DOMAIN}`,
       password,
       displayName: username,
     });
 
     const isAdminUser = role === 'admin';
-    await auth.setCustomUserClaims(userRecord.uid, isAdminUser ? { isAdmin: true } : { isCoach: true });
 
-    await db.collection('users').doc(userRecord.uid).set({
+
+    await finishAccount(userRecord.uid, {
       username,
       isAdmin: isAdminUser,
       isCoach: role === 'coach',
@@ -96,9 +78,10 @@ router.post('/add-admin', isAdmin, async (req, res, next) => {
     });
 
     req.flash('success', 'تم إضافة المسؤول بنجاح');
-    res.redirect('/admin/players');
+    res.redirect('/#accounts');
   } catch (err) {
-    next(err);
+    req.flash('error', accountError(err));
+    res.redirect('/admin/add-admin');
   }
 });
 
@@ -117,7 +100,9 @@ router.post('/create-player-account', isAdmin, async (req, res, next) => {
   };
 
   try {
-    const { username, password, playerId } = req.body;
+    const { password, playerId } = req.body;
+    const username = String(req.body.username || '').trim().toLowerCase();
+    validateCredentials(username, password);
 
     if (!username || !password || !playerId) {
       return res.status(400).render('admin/createPlayerAccount', {
@@ -152,15 +137,15 @@ router.post('/create-player-account', isAdmin, async (req, res, next) => {
       });
     }
 
-    const userRecord = await auth.createUser({
+    const userRecord = await createAccount({
       email: `${username}@${EMAIL_DOMAIN}`,
       password,
       displayName: username,
     });
 
-    await auth.setCustomUserClaims(userRecord.uid, { isPlayer: playerId });
 
-    await db.collection('users').doc(userRecord.uid).set({
+
+    await finishAccount(userRecord.uid, {
       username,
       isAdmin: false,
       isPlayer: playerId,
@@ -169,11 +154,58 @@ router.post('/create-player-account', isAdmin, async (req, res, next) => {
     });
 
     req.flash('success', 'تم إنشاء حساب اللاعب بنجاح');
-    res.redirect('/admin/players');
+    res.redirect('/#accounts');
   } catch (err) {
-    console.error('Error in user creation:', err);
-    next(err);
+    res.status(400).render('admin/createPlayerAccount', { title: 'إنشاء حساب لاعب', players: await reloadPlayers(), error: accountError(err), formData: { username: req.body.username, playerId: req.body.playerId } });
   }
 });
 
+function validateCredentials(username, password) {
+  if (!username || /[\s@]/.test(username)) throw new Error('اسم المستخدم مطلوب ولا يقبل مسافات أو @');
+  if (typeof password !== 'string' || password.length < 6) throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+}
+function accountError(err) {
+  return ({ 'auth/email-already-exists': 'اسم المستخدم موجود بالفعل', 'auth/invalid-email': 'اسم المستخدم غير صالح', 'auth/invalid-password': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' })[err.code] || (err.code ? 'تعذر حفظ الحساب. تحقق من إعدادات Firebase وحاول مجددًا.' : err.message);
+}
+async function createAccount(data) { return auth.createUser(data); }
+async function finishAccount(uid, data) {
+  try {
+    await auth.setCustomUserClaims(uid, { isAdmin: !!data.isAdmin, isCoach: !!data.isCoach, isPlayer: data.isPlayer || null, isView: !!data.isView });
+    await db.collection('users').doc(uid).set(data);
+  } catch (err) { await auth.deleteUser(uid).catch(() => {}); throw err; }
+}
+router.get('/accounts/:id/edit', isAdmin, async (req,res,next) => {
+  try {
+    const doc = await db.collection('users').doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).send('الحساب غير موجود');
+    res.render('admin/editAccount', { title: 'تعديل الحساب', account: { ...doc.data(), _id: doc.id }, players: await loadPlayersForAccountForm(), error: null });
+  } catch(err) { next(err); }
+});
+router.post('/accounts/:id/edit', isAdmin, async (req,res,next) => {
+  const ref = db.collection('users').doc(req.params.id);
+  try {
+    const doc = await ref.get();
+    if (!doc.exists) return res.status(404).send('الحساب غير موجود');
+    const playerId = String(req.body.playerId || '');
+    const password = req.body.password;
+    if (password) validateCredentials(doc.data().username, password);
+    if (playerId) {
+      if (!(await db.collection('players').doc(playerId).get()).exists) throw new Error('اللاعب غير موجود');
+      const linked = await db.collection('users').where('isPlayer', '==', playerId).get();
+      if (linked.docs.some(d => d.id !== doc.id)) throw new Error('اللاعب مرتبط بحساب آخر');
+    }
+    const data = doc.data();
+    const authUser = await auth.getUser(doc.id);
+    await auth.setCustomUserClaims(doc.id, { ...authUser.customClaims, isPlayer: playerId || null });
+    try { await ref.update({ isPlayer: playerId || null }); }
+    catch(err) { await auth.setCustomUserClaims(doc.id, authUser.customClaims || {}); throw err; }
+    if (password) { await auth.updateUser(doc.id, { password }); await auth.revokeRefreshTokens(doc.id); }
+    req.flash('success', 'تم حفظ الحساب بنجاح');
+    res.redirect('/#accounts');
+  } catch(err) {
+    const doc = await ref.get();
+    if (!doc.exists) return next(err);
+    res.status(400).render('admin/editAccount', { title: 'تعديل الحساب', account: { ...doc.data(), _id: doc.id }, players: await loadPlayersForAccountForm(), error: accountError(err) });
+  }
+});
 module.exports = router;

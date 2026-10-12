@@ -1,3 +1,4 @@
+<% const accountsLoaded = typeof users !== 'undefined' && Array.isArray(users); const dashboardUsers = accountsLoaded ? users : []; const dashboardPlayers = typeof players !== 'undefined' && Array.isArray(players) ? players : []; const dashboardMessages = typeof messages !== 'undefined' ? messages : {}; %>
 <style>.home-hero{background:linear-gradient(135deg,#10233f,#08708b);color:#fff;border-radius:20px;padding:clamp(1.5rem,5vw,4rem)}.home-logo{width:150px;height:150px;object-fit:cover;border-radius:50%;border:5px solid rgba(255,255,255,.3)}.home-action{height:100%;transition:.2s}.home-action:hover{transform:translateY(-4px)}.home-icon{font-size:2.2rem}</style>
 <section class="home-hero mb-4"><div class="row align-items-center g-4"><div class="col-md-8"><div class="small mb-2">نادي التضامن لكرة اليد</div><h1>مرحباً <%= user ? user.username : 'بك' %></h1><p class="lead mb-0">إدارة الفريق، تسجيل المباراة وتحليل الأداء من مكان واحد.</p></div><div class="col-md-4 text-center"><img src="/assest/logo.jpeg" class="home-logo" alt="شعار النادي"></div></div></section>
 <div class="row g-3">
@@ -14,7 +15,12 @@
  <% } %>
  <% if (user && user.isAdmin) { %>
  <div class="col-md-6 col-lg-4"><a class="card home-action text-decoration-none text-dark" href="/listings/view"><div class="card-body"><div class="home-icon">🤾</div><h3>اللاعبون</h3><p class="text-muted">إدارة القوائم والملفات الشخصية.</p><span class="btn btn-outline-dark">إدارة اللاعبين</span></div></a></div>
+ <div class="col-md-6 col-lg-4"><a class="card home-action text-decoration-none text-dark" href="#accounts"><div class="card-body"><div class="home-icon">👥</div><h3>إدارة الحسابات</h3><p class="text-muted">جميع الحسابات وتعديل كلمة المرور واللاعب المرتبط.</p><span class="btn btn-primary">عرض الحسابات <% if (accountsLoaded) { %>(<%= dashboardUsers.length %>)<% } %></span></div></a></div>
  <div class="col-md-6 col-lg-4"><a class="card home-action text-decoration-none text-dark" href="/admin/create-player-account"><div class="card-body"><div class="home-icon">➕</div><h3>حساب لاعب</h3><p class="text-muted">إنشاء حساب وربطه بملف اللاعب.</p><span class="btn btn-outline-warning">إنشاء حساب</span></div></a></div>
  <% } %>
  <% if (!user) { %><div class="col-12 text-center"><a href="/auth/sign-in" class="btn btn-primary btn-lg">تسجيل الدخول للبدء</a></div><% } %>
 </div>
+
+<% if (user && user.isAdmin) { %>
+<section id="accounts" class="mt-4" style="scroll-margin-top:24px"><% if (accountsLoaded) { %><%- include('admin/players-list', { users: dashboardUsers, players: dashboardPlayers, messages: dashboardMessages }) %><% } else { %><div class="alert alert-warning">لم يتم تحميل الحسابات. <a href="/admin/players">فتح إدارة الحسابات</a></div><% } %></section>
+<% } %>

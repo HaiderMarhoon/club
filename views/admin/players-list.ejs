@@ -1,7 +1,7 @@
 
 
 <div class="container py-5" dir="rtl">
-  <h1 class="text-center mb-5">قائمة اللاعبين المسجلين</h1>
+  <h1 class="text-center mb-5">إدارة جميع الحسابات</h1>
   <% if (messages && messages.error) { %>
     <% messages.error.forEach(function(msg){ %>
       <div class="alert alert-danger"><%= msg %></div>
@@ -20,15 +20,15 @@
           <tr>
             <th>اسم المستخدم</th>
             <th>اللاعب المرتبط</th>
-            <th>تاريخ الإنشاء</th>
+            <th>الدور</th><th>تاريخ الإنشاء</th><th>الإجراءات</th>
           </tr>
         </thead>
         <tbody>
           <% users.forEach(user => { %>
             <tr>
               <td><%= user.username %></td>
-              <td><%= user.isPlayer.name %></td>
-              <td><%= user.createdAt.toLocaleDateString('ar-EG') %></td>
+              <td><%= user.isPlayer ? user.isPlayer.name : 'غير مرتبط' %></td>
+              <td><%= user.isAdmin ? 'أدمن' : user.isCoach ? 'مدرب' : user.isPlayer ? 'لاعب' : 'مشاهد' %></td><td><%= user.createdAt && !isNaN(user.createdAt) ? user.createdAt.toLocaleDateString('ar-EG') : '—' %></td><td><a class="btn btn-sm btn-primary" href="/admin/accounts/<%= user._id %>/edit">تعديل الحساب</a></td>
             </tr>
           <% }); %>
         </tbody>
@@ -36,7 +36,7 @@
     </div>
   <% } else { %>
     <div class="alert alert-info text-center">
-      لا يوجد حسابات لاعبين مسجلة بعد
+      لا توجد حسابات مسجلة بعد
     </div>
   <% } %>
   

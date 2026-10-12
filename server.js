@@ -137,11 +137,11 @@ app.get('/public/matches/:id', eventsController.getPublicMatch);
 app.delete('/matches/:id', isSignedIn, canManageTeam, eventsController.deleteMatch);
 app.get('/statistics', isSignedIn, statisticsController.dashboard);
 
-app.get('/', (req, res) => {
-  res.render('index', {
-    title: 'Football Team Management',
-    messages: req.flash()
-  })
+app.get('/', async (req, res, next) => {
+  try {
+    const accountData = req.user && req.user.isAdmin ? await require('./services/admin-accounts')() : { players: [], users: [] };
+    res.render('index', { title: 'لوحة إدارة الفريق', messages: req.flash(), ...accountData });
+  } catch (err) { next(err); }
 })
 
 // 404 handler
@@ -161,6 +161,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack)
+  if (req.is('application/json') || req.accepts(['html', 'json']) === 'json') return res.status(500).json({ success: false, message: 'تعذر تنفيذ الطلب. حاول مجددًا.' });
   res.status(500).render('error', {
     error: err,
     title: 'Server Error'

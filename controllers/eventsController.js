@@ -9,13 +9,16 @@ exports.addEvent = async (req, res) => {
     createdAt: new Date(),
     createdBy: req.user && (req.user.uid || req.user.id) || null,
   };
-  const eventRef = await db.collection('events').add(eventData);
-
-  if (req.body.matchId) {
-    await db.collection('matches').doc(req.body.matchId).update({
-      eventIds: FieldValue.arrayUnion(eventRef.id),
+  const eventRef = db.collection('events').doc();
+  if (eventData.matchId) {
+    const matchRef = db.collection('matches').doc(eventData.matchId);
+    await db.runTransaction(async transaction => {
+      const match = await transaction.get(matchRef);
+      if (!match.exists || match.data().status === 'finished') throw new Error('المباراة غير موجودة أو منتهية');
+      transaction.set(eventRef, eventData);
+      transaction.update(matchRef, { eventIds: FieldValue.arrayUnion(eventRef.id), updatedAt: new Date() });
     });
-  }
+  } else { await eventRef.set(eventData); }
 
   res.json({ success: true, event: { _id: eventRef.id, ...eventData } });
 };
@@ -205,3 +208,5 @@ exports.deleteEvent = async (req, res) => {
   await batch.commit();
   res.json({ success: true, message: 'تم التراجع عن الحدث.' });
 };
+
+Object.keys(exports).forEach(key => { const handler = exports[key]; exports[key] = (req,res,next) => Promise.resolve(handler(req,res,next)).catch(next); });

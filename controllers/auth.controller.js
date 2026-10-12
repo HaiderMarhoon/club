@@ -4,7 +4,7 @@ const { db, auth, firebaseConfigured, firebaseConfigurationError } = require('..
 const { EMAIL_DOMAIN } = require('../config/firebase-client-config');
 
 router.get('/', (req, res) => {
-  res.render('home.ejs', { user: req.user, currentPlayer: res.locals.currentPlayer });
+  res.redirect('/');
 });
 
 // SIGN UP VIEW
